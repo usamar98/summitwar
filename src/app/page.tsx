@@ -1,7 +1,5 @@
-import { BadgeDollarSign, RotateCcw, ShieldCheck } from "lucide-react";
 import { ActivityFeed } from "@/components/summitwar/activity-feed";
 import { BaseCamp } from "@/components/summitwar/base-camp";
-import { Countdown } from "@/components/summitwar/countdown";
 import { InteractiveMountain } from "@/components/summitwar/mountain";
 import { LiveProof } from "@/components/summitwar/live-proof";
 import { MountainHeroPanel } from "@/components/summitwar/mountain-hero-panel";
@@ -21,68 +19,9 @@ export default async function HomePage() {
         <div className="aurora pointer-events-none absolute left-[8%] top-10 h-56 w-96 rotate-[-14deg] rounded-full bg-accent/20" />
         <div className="aurora pointer-events-none absolute right-[8%] top-0 h-64 w-80 rotate-12 rounded-full bg-primary/14" />
         <div className="relative mx-auto max-w-[1440px] px-4 pb-12 pt-10 sm:px-6 lg:px-10 lg:pb-16 lg:pt-14">
-          <div className="mb-7 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div>
-              <Badge
-                variant="outline"
-                className="mb-4 border-primary/30 bg-primary/8 text-primary"
-              >
-                Top 50 · Season {data.season.number} is live
-              </Badge>
-              <h1 className="text-balance max-w-4xl text-4xl font-semibold leading-[.98] tracking-[-.05em] sm:text-5xl lg:text-6xl">
-                Climb the internet&apos;s highest startup mountain.
-              </h1>
-              <p className="mt-4 max-w-2xl text-balance leading-7 text-muted-foreground">
-                Every verified dollar adds 100 metres. Tap a flag to inspect a
-                startup, or claim the first camp from the panel beside the
-                mountain.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-2">
-                  <ShieldCheck className="size-4 text-accent" /> Verified
-                  webhook payments
-                </span>
-                <span className="flex items-center gap-2">
-                  <BadgeDollarSign className="size-4 text-accent" /> No
-                  subscriptions
-                </span>
-                <span className="flex items-center gap-2">
-                  <RotateCcw className="size-4 text-accent" /> Resets Mondays
-                  00:00 UTC
-                </span>
-              </div>
-            </div>
-            <Card className="w-full border-primary/20 bg-black/20 backdrop-blur lg:w-[330px]">
-              <CardContent className="p-5 sm:p-6">
-                <div className="text-xs font-medium uppercase tracking-[.2em] text-primary">
-                  Next avalanche
-                </div>
-                <div className="mt-3">
-                  <Countdown end={data.season.endsAt} />
-                </div>
-                <div className="mt-4 flex items-end justify-between border-t border-primary/15 pt-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground">
-                      Current summit
-                    </div>
-                    <div className="mt-1 text-lg font-semibold">
-                      {summit?.name ?? "Unclaimed"}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-muted-foreground">
-                      Altitude
-                    </div>
-                    <div className="metric-number mt-1 font-mono text-lg font-semibold text-primary">
-                      {summit
-                        ? `${summit.altitudeMeters.toLocaleString()}m`
-                        : "0m"}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <h1 className="mb-7 text-balance max-w-4xl text-4xl font-semibold leading-[.98] tracking-[-.05em] sm:text-5xl lg:text-6xl">
+            Climb the internet&apos;s highest startup mountain.
+          </h1>
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
             <InteractiveMountain initialStartups={data.mountain} />
             <MountainHeroPanel startup={summit} />
