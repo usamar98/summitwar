@@ -1,51 +1,62 @@
 import "server-only";
 
-import DodoPayments from "dodopayments";
 import type {
   CheckoutRequest,
   CheckoutResult,
   PaymentProvider,
 } from "@/lib/payments/types";
+import { getStripeClient, hasStripeEnv } from "@/lib/payments/stripe";
 
-class DodoPaymentProvider implements PaymentProvider {
-  readonly name = "dodo" as const;
-  private readonly client: DodoPayments;
-
-  constructor() {
-    this.client = new DodoPayments({
-      bearerToken: process.env.DODO_PAYMENTS_API_KEY!,
-      environment:
-        process.env.DODO_PAYMENTS_ENVIRONMENT === "test_mode"
-          ? "test_mode"
-          : "live_mode",
-    });
-  }
-
+class StripePaymentProvider implements PaymentProvider {
+  readonly name = "stripe" as const;
   async createCheckout(input: CheckoutRequest): Promise<CheckoutResult> {
-    const session = await this.client.checkoutSessions.create({
-      product_cart: [
-        {
-          product_id: process.env.DODO_PAYMENTS_PRODUCT_ID!,
-          quantity: 1,
-          amount: input.amountCents,
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const session = await getStripeClient().checkout.sessions.create(
+      {
+        mode: "payment",
+        customer_email: input.email,
+        client_reference_id: input.paymentId,
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              unit_amount: input.amountCents,
+              product_data: {
+                name: `${input.startupName} SummitWar climb`,
+                description: `${input.amountCents / 100} USD sponsored climb · 100 metres per dollar`,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        metadata: {
+          summitwar_payment_id: input.paymentId,
+          summitwar_listing_id: input.listingId,
         },
-      ],
-      customer: { email: input.email, name: input.startupName },
-      metadata: {
-        summitwar_payment_id: input.paymentId,
-        summitwar_listing_id: input.listingId,
+        payment_intent_data: {
+          metadata: {
+            summitwar_payment_id: input.paymentId,
+            summitwar_listing_id: input.listingId,
+          },
+        },
+        success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${appUrl}/checkout?listing=${encodeURIComponent(input.listingId)}&cancelled=1`,
+        submit_type: "pay",
+        custom_text: {
+          submit: {
+            message:
+              "Sponsored placement. Your live rank is determined only after Stripe confirms payment.",
+          },
+        },
       },
-      return_url:
-        process.env.DODO_PAYMENTS_RETURN_URL ??
-        `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/checkout/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/checkout?cancelled=1`,
-      short_link: true,
-    });
-    if (!session.checkout_url)
-      throw new Error("Dodo Payments did not return a checkout URL");
+      {
+        idempotencyKey: `summitwar-checkout-${input.paymentId}`,
+      },
+    );
+    if (!session.url) throw new Error("Stripe did not return a checkout URL");
     return {
-      checkoutUrl: session.checkout_url,
-      providerCheckoutId: session.session_id,
+      checkoutUrl: session.url,
+      providerCheckoutId: session.id,
     };
   }
 }
@@ -61,15 +72,12 @@ class DevelopmentPaymentProvider implements PaymentProvider {
   }
 }
 
-export function getPaymentProvider(): PaymentProvider {
-  if (
-    process.env.DODO_PAYMENTS_API_KEY &&
-    process.env.DODO_PAYMENTS_PRODUCT_ID &&
-    process.env.DODO_PAYMENTS_WEBHOOK_KEY
-  ) {
-    return new DodoPaymentProvider();
-  }
+export function getPaymentProvider(options?: {
+  forceDevelopment?: boolean;
+}): PaymentProvider {
+  if (options?.forceDevelopment) return new DevelopmentPaymentProvider();
+  if (hasStripeEnv()) return new StripePaymentProvider();
   if (process.env.NODE_ENV !== "production")
     return new DevelopmentPaymentProvider();
-  throw new Error("Dodo Payments is not configured");
+  throw new Error("Stripe is not configured");
 }

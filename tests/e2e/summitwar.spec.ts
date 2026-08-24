@@ -42,7 +42,7 @@ test("creates a listing through the development payment adapter", async ({
       "This is a long enough description for the end to end listing validation flow.",
     );
   await page.getByLabel("Checkout email").fill("founder@example.com");
-  await page.getByRole("button", { name: /Continue to Dodo Payments/ }).click();
+  await page.getByRole("button", { name: /Continue to Stripe/ }).click();
   await expect(page).toHaveURL(/checkout\/success/);
   await expect(page.getByText(/Test checkout created/)).toBeVisible();
 });

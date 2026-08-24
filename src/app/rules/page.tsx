@@ -22,7 +22,7 @@ const rules = [
   ],
   [
     "Webhooks move flags",
-    "The browser and success redirect never change altitude. Only a correctly signed Dodo Payments success webhook can credit a payment, and duplicate delivery cannot credit twice.",
+    "The browser and success redirect never change altitude. Only a correctly signed Stripe paid Checkout webhook can credit a payment, and duplicate delivery cannot credit twice.",
   ],
   [
     "Monday is avalanche day",

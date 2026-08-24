@@ -19,8 +19,8 @@ export default function StartPage() {
           Your first 100 metres start here.
         </h1>
         <p className="mt-4 text-lg leading-8 text-muted-foreground">
-          Create the permanent profile now. Your flag goes live only after Dodo
-          Payments sends a verified success webhook.
+          Create the permanent profile now. Your flag goes live only after
+          Stripe sends a verified success webhook.
         </p>
         <ul className="mt-8 space-y-4 text-sm">
           {[

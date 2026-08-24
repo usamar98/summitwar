@@ -10,21 +10,21 @@ SummitWar is a production-oriented competitive startup discovery application for
 - Passwordless Supabase Auth owner dashboard with profile/logo editing, metrics, rank history, competitors, top-ups, share assets, and notification preferences
 - Allowlisted admin dashboard for moderation, listing edits, payments, idempotent provider replay, webhooks, seasons, testimonials, settings, email preview, CSV exports, and audit history
 - Supabase Postgres migration containing indexed tables, restrictive RLS, storage rules, analytics deduplication, rate limits, season rotation, and an atomic payment/ranking transaction
-- Dodo Payments checkout provider abstraction, official `@dodopayments/nextjs` verified webhook adapter, Resend email delivery, and safe development fallbacks
+- Stripe-hosted Checkout provider abstraction, signed webhook verification with the official Stripe SDK, Resend email delivery, and safe development fallbacks
 - Vitest domain/security coverage and Playwright journeys
 
 ## Non-negotiable integrity rules
 
 The browser and checkout return page never update altitude. `apply_verified_payment` is the only payment-credit path. It runs in one Postgres transaction, locks the active season and participating listings, rejects amount/currency mismatch, stores a unique provider event, prevents repeated provider payment IDs, recalculates every rank with the tie timestamp, appends an immutable event, and updates public aggregates.
 
-Verified revenue is separate from admin activity. There is no admin action for manufacturing a successful payment. Replays first retrieve the payment from Dodo and remain idempotent at the database layer.
+Verified revenue is separate from admin activity. There is no admin action for manufacturing a successful payment. Replays first retrieve the PaymentIntent from Stripe and remain idempotent at the database layer.
 
 ## Requirements
 
 - Node.js 22 or newer
 - npm 10 or newer
 - A Supabase project on a supported Postgres version
-- A Dodo Payments account and one one-time product with **pay what you want** enabled
+- A Stripe account
 - Optional: Resend account
 - Optional for local database testing: Docker Desktop and the current Supabase CLI
 
@@ -75,20 +75,26 @@ npx supabase@latest db reset
 
 Do not run the seed file against production. Seeded rows are labelled “Demo data” in public UI.
 
-## Dodo Payments test mode
+## Stripe test mode
 
-1. Create a one-time product in Dodo Payments and enable pay-what-you-want pricing. SummitWar passes the validated amount in cents on the checkout-session cart item.
-2. Set `DODO_PAYMENTS_ENVIRONMENT=test_mode`, the API key, product ID, webhook key, and return URL.
-3. Add a webhook destination:
+1. Copy a Stripe test-mode secret key into `STRIPE_SECRET_KEY`. SummitWar creates one-time Checkout Sessions with an inline USD price for the validated whole-dollar climb, so no pre-created Stripe Product or Price is required.
+2. Install and authenticate the Stripe CLI, then forward signed local events:
 
-```text
-https://YOUR_DOMAIN/api/webhooks/dodo
+```bash
+stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-4. Subscribe to `payment.succeeded`. The official Next.js adapter verifies the signature and validates the provider payload before application code runs.
-5. For local testing, use the Dodo CLI webhook forwarder described in the official Dodo documentation and forward to `http://localhost:3000/api/webhooks/dodo`.
+3. Copy the CLI's `whsec_...` signing secret into `STRIPE_WEBHOOK_SECRET` and restart the development server.
+4. Start a climb and use Stripe's `4242 4242 4242 4242` test card with any future expiry and CVC.
+5. In production, create a Stripe webhook destination at:
 
-The metadata sent with every checkout contains `summitwar_payment_id` and `summitwar_listing_id`. The webhook trusts the pending payment stored server-side—not browser amounts or redirect query parameters. A stale quote still credits the paid amount and returns the actual resulting rank.
+```text
+https://YOUR_DOMAIN/api/webhooks/stripe
+```
+
+Subscribe it to `checkout.session.completed` and `checkout.session.async_payment_succeeded`. The route reads the raw request body, verifies `Stripe-Signature`, accepts only paid one-time Checkout Sessions, and validates the required amount, currency, PaymentIntent, and internal UUID before calling the database transaction.
+
+The metadata sent on both the Checkout Session and PaymentIntent contains `summitwar_payment_id` and `summitwar_listing_id`. The webhook trusts the pending payment stored server-side—not browser amounts or redirect query parameters. A stale quote still credits the paid amount and returns the actual resulting rank.
 
 ## Resend
 
@@ -114,11 +120,11 @@ select public.rotate_weekly_season(now());
 ## Vercel deployment
 
 1. Import the repository into Vercel.
-2. Add every value from `.env.example` for Production. Use Dodo live-mode credentials only after test-mode webhook verification succeeds.
-3. Set `NEXT_PUBLIC_APP_URL=https://summitwar.lol` and `DODO_PAYMENTS_RETURN_URL=https://summitwar.lol/checkout/success`.
+2. Add every value from `.env.example` for Production. Use a Stripe `sk_live_...` key only after test-mode Checkout and webhook verification succeeds.
+3. Set `NEXT_PUBLIC_APP_URL=https://summitwar.lol`. Stripe Checkout derives its success and cancellation URLs from this value.
 4. Leave `NEXT_PUBLIC_DEMO_MODE=false` in production.
 5. Deploy, then verify the two cron jobs under Project Settings → Cron Jobs.
-6. Add the production Auth callback to Supabase and the production webhook URL to Dodo.
+6. Add the production Auth callback to Supabase and the production webhook URL to Stripe.
 
 ## Analytics and privacy
 
@@ -141,11 +147,11 @@ npm run build
 npm run test:e2e
 ```
 
-Playwright starts the app with visibly labelled demo data. A real signed webhook and database Realtime run require Supabase and Dodo test credentials; the database transaction, duplicate delivery, concurrent top-ups, stale quotes, resets, authorization, URL safety, and deduplication are covered by deterministic tests.
+Playwright starts the app with visibly labelled demo data. A real signed webhook and database Realtime run require Supabase and Stripe test credentials; the database transaction, duplicate delivery, concurrent top-ups, stale quotes, resets, authorization, URL safety, and deduplication are covered by deterministic tests.
 
 ## Operational notes
 
-- Dodo checkout sessions are behind `PaymentProvider`; replacing checkout creation later does not change ranking SQL.
+- Stripe Checkout Sessions are behind `PaymentProvider`; replacing checkout creation later does not change ranking SQL.
 - A payment success redirect can safely arrive before its webhook. The UI deliberately says verification is pending.
 - Structured logs include event names and internal payment IDs, never API keys, full webhook bodies, or payer emails.
 - SVG logo uploads are intentionally rejected; SVG can carry active content. Accepted formats are PNG, JPEG, and WebP up to 2 MB.

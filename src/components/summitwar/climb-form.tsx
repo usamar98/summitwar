@@ -144,7 +144,7 @@ export function NewListingForm() {
           <Disclosure />
           <Button type="submit" size="lg" className="h-12" disabled={pending}>
             {pending ? <Loader2 className="animate-spin" /> : <ArrowUpRight />}
-            {pending ? "Opening secure checkout…" : "Continue to Dodo Payments"}
+            {pending ? "Opening secure checkout…" : "Continue to Stripe"}
           </Button>
         </form>
       </CardContent>

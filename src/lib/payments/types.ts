@@ -12,6 +12,6 @@ export type CheckoutResult = {
 };
 
 export interface PaymentProvider {
-  readonly name: "dodo" | "development";
+  readonly name: "stripe" | "development";
   createCheckout(input: CheckoutRequest): Promise<CheckoutResult>;
 }

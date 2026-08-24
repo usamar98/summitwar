@@ -24,7 +24,9 @@ export async function POST(request: Request) {
         { status: 503 },
       );
     const demo = demoStartups.find((item) => item.id === input.listingId);
-    const result = await getPaymentProvider().createCheckout({
+    const result = await getPaymentProvider({
+      forceDevelopment: true,
+    }).createCheckout({
       paymentId: crypto.randomUUID(),
       listingId: input.listingId ?? crypto.randomUUID(),
       startupName: input.listing?.name ?? demo?.name ?? "New startup",
@@ -125,6 +127,7 @@ export async function POST(request: Request) {
     .insert({
       listing_id: listingId,
       season_id: season.id,
+      provider: "stripe",
       payer_email: input.email,
       amount_cents: amountCents,
       requested_rank: target?.current_rank ?? null,

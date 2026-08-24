@@ -1,10 +1,11 @@
 "use server";
 
 import { createHash } from "node:crypto";
-import DodoPayments from "dodopayments";
 import { revalidatePath } from "next/cache";
+import type Stripe from "stripe";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { getStripeClient } from "@/lib/payments/stripe";
 import { sanitizePlainText } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -176,43 +177,55 @@ export async function updateMinimumBidAction(formData: FormData) {
 export async function replayPaymentAction(formData: FormData) {
   const admin = await requireAdmin();
   const paymentId = z.string().uuid().parse(formData.get("paymentId"));
-  if (!process.env.DODO_PAYMENTS_API_KEY)
-    throw new Error("Dodo Payments is not configured");
+  if (!process.env.STRIPE_SECRET_KEY)
+    throw new Error("Stripe is not configured");
   const supabase = createAdminClient();
   const { data: payment } = await supabase
     .from("payments")
-    .select("id,provider_payment_id")
+    .select("id,provider,provider_checkout_id,provider_payment_id")
     .eq("id", paymentId)
     .single();
-  if (!payment?.provider_payment_id)
-    throw new Error("Payment has no provider ID");
-  const dodo = new DodoPayments({
-    bearerToken: process.env.DODO_PAYMENTS_API_KEY,
-    environment:
-      process.env.DODO_PAYMENTS_ENVIRONMENT === "test_mode"
-        ? "test_mode"
-        : "live_mode",
-  });
-  const remote = await dodo.payments.retrieve(payment.provider_payment_id);
+  if (!payment) throw new Error("Payment was not found");
+  if (payment.provider !== "stripe")
+    throw new Error("Only Stripe payments can be replayed");
+  const stripe = getStripeClient();
+  let remote: Stripe.PaymentIntent | null = payment.provider_payment_id
+    ? await stripe.paymentIntents.retrieve(payment.provider_payment_id)
+    : null;
+  if (!remote && payment.provider_checkout_id) {
+    const session = await stripe.checkout.sessions.retrieve(
+      payment.provider_checkout_id,
+      { expand: ["payment_intent"] },
+    );
+    if (session.payment_status !== "paid")
+      throw new Error("Stripe does not report this Checkout as paid");
+    remote =
+      typeof session.payment_intent === "string"
+        ? await stripe.paymentIntents.retrieve(session.payment_intent)
+        : session.payment_intent;
+  }
+  if (!remote) throw new Error("Payment has no Stripe payment reference");
   if (remote.status !== "succeeded")
     throw new Error("Provider does not report this payment as succeeded");
+  if (remote.metadata.summitwar_payment_id !== payment.id)
+    throw new Error("Stripe metadata does not match this payment");
   const digest = createHash("sha256")
     .update(
       JSON.stringify({
-        id: remote.payment_id,
-        amount: remote.total_amount,
+        id: remote.id,
+        amount: remote.amount_received,
         currency: remote.currency,
       }),
     )
     .digest("hex");
   const { data, error } = await supabase.rpc("apply_verified_payment", {
-    p_provider_event_id: `${remote.payment_id}:admin-replay`,
-    p_provider_payment_id: remote.payment_id,
+    p_provider_event_id: `${remote.id}:admin-replay`,
+    p_provider_payment_id: remote.id,
     p_payment_id: payment.id,
-    p_amount_cents: remote.total_amount,
+    p_amount_cents: remote.amount_received,
     p_currency: remote.currency,
     p_payload_digest: digest,
-    p_occurred_at: remote.created_at,
+    p_occurred_at: new Date(remote.created * 1000).toISOString(),
   });
   if (error) throw new Error("Idempotent replay failed");
   await audit(admin, "webhook.replay", "payment", paymentId, null, data);

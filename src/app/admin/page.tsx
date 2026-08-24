@@ -73,7 +73,7 @@ export default async function AdminPage({
     supabase
       .from("payments")
       .select(
-        "id,listing_id,provider_payment_id,status,amount_cents,verified,failure_code,created_at",
+        "id,listing_id,provider_checkout_id,provider_payment_id,status,amount_cents,verified,failure_code,created_at",
       )
       .order("created_at", { ascending: false })
       .limit(60),
@@ -316,7 +316,8 @@ export default async function AdminPage({
                       <td>{item.verified ? "Yes" : "No"}</td>
                       <td>{new Date(item.created_at).toLocaleString()}</td>
                       <td>
-                        {item.provider_payment_id ? (
+                        {item.provider_payment_id ||
+                        item.provider_checkout_id ? (
                           <form action={replayPaymentAction}>
                             <input
                               type="hidden"

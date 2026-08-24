@@ -153,9 +153,8 @@ export default async function HomePage() {
                 </h2>
                 <p className="mt-4 leading-7 text-muted-foreground">
                   Choose the next camp, take the summit, or set a whole-dollar
-                  amount. We calculate the transparent minimum, Dodo Payments
-                  handles checkout, and only the verified webhook moves your
-                  flag.
+                  amount. We calculate the transparent minimum, Stripe handles
+                  checkout, and only the verified webhook moves your flag.
                 </p>
               </div>
               <div className="mt-8 grid grid-cols-3 gap-3 text-center">

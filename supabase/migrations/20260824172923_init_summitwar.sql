@@ -73,7 +73,7 @@ create table public.payments (
   id uuid primary key default gen_random_uuid(),
   listing_id uuid not null references public.listings(id) on delete restrict,
   season_id uuid references public.seasons(id) on delete set null,
-  provider text not null default 'dodo',
+  provider text not null default 'stripe',
   provider_checkout_id text unique,
   provider_payment_id text unique,
   payer_email text not null,
@@ -428,7 +428,7 @@ declare
   v_message text;
 begin
   insert into public.webhook_events(provider, provider_event_id, event_type, payload_digest)
-  values ('dodo', p_provider_event_id, 'payment.succeeded', p_payload_digest)
+  values ('stripe', p_provider_event_id, 'checkout.session.paid', p_payload_digest)
   on conflict (provider, provider_event_id) do nothing returning id into v_webhook_id;
   if v_webhook_id is null then
     return jsonb_build_object('duplicate', true);
@@ -436,6 +436,7 @@ begin
 
   select * into v_payment from public.payments where id = p_payment_id for update;
   if not found then raise exception 'Unknown checkout payment'; end if;
+  if v_payment.provider <> 'stripe' then raise exception 'Payment provider mismatch'; end if;
   if v_payment.status = 'succeeded' then
     update public.webhook_events set status = 'ignored', processed_at = now() where id = v_webhook_id;
     return jsonb_build_object('duplicate', true, 'payment_id', v_payment.id);

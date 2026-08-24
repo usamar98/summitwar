@@ -37,8 +37,8 @@ export default async function CheckoutSuccessPage({
           </h1>
           <p className="mt-4 leading-7 text-muted-foreground">
             {demo
-              ? "The development fallback never changes altitude. Configure Dodo Payments and forward a signed test-mode webhook to exercise the production transaction."
-              : "The success redirect cannot move your flag. Dodo Payments will send a signed webhook; once verified, the atomic ranking transaction applies your climb and emails your actual rank."}
+              ? "The development fallback never changes altitude. Configure Stripe and forward a signed test webhook to exercise the production transaction."
+              : "The success redirect cannot move your flag. Stripe will send a signed webhook; once verified, the atomic ranking transaction applies your climb and emails your actual rank."}
           </p>
           <Alert className="mt-7 text-left">
             <Clock3 />
