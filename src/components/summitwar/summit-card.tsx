@@ -18,7 +18,13 @@ import { StartupMark } from "@/components/summitwar/startup-mark";
 import { formatDuration, formatMoney, formatNumber } from "@/lib/format";
 import type { Startup } from "@/lib/types";
 
-export function SummitCard({ startup }: { startup: Startup | null }) {
+export function SummitCard({
+  startup,
+  onClaim,
+}: {
+  startup: Startup | null;
+  onClaim?: () => void;
+}) {
   if (!startup)
     return (
       <Card className="border-dashed border-primary/25 bg-primary/5">
@@ -35,11 +41,17 @@ export function SummitCard({ startup }: { startup: Startup | null }) {
           </p>
         </CardHeader>
         <CardFooter>
-          <Button asChild size="lg">
-            <Link href="/start">
+          {onClaim ? (
+            <Button type="button" size="lg" onClick={onClaim}>
               Claim the first camp <ArrowUpRight />
-            </Link>
-          </Button>
+            </Button>
+          ) : (
+            <Button asChild size="lg">
+              <Link href="/start">
+                Claim the first camp <ArrowUpRight />
+              </Link>
+            </Button>
+          )}
         </CardFooter>
       </Card>
     );

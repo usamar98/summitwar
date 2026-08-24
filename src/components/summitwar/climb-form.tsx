@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Loader2, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,13 @@ async function beginCheckout(payload: Record<string, unknown>) {
   window.location.assign(result.checkoutUrl);
 }
 
-export function NewListingForm() {
+export function NewListingForm({
+  compact = false,
+  onCancel,
+}: {
+  compact?: boolean;
+  onCancel?: () => void;
+} = {}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function submit(formData: FormData) {
@@ -58,20 +64,33 @@ export function NewListingForm() {
     }
   }
   return (
-    <Card className="border-primary/15">
+    <Card
+      className={`border-primary/15 ${compact ? "xl:max-h-[660px] xl:overflow-y-auto" : ""}`}
+    >
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Plant a new flag</CardTitle>
           <Badge className="bg-primary/10 text-primary">From $1</Badge>
         </div>
         <p className="text-sm leading-6 text-muted-foreground">
-          No account required. We email a passwordless owner link after the
-          verified payment.
+          No account required. Use your checkout email later to access the owner
+          dashboard.
         </p>
+        {onCancel ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-fit px-0 text-muted-foreground"
+            onClick={onCancel}
+          >
+            <ArrowLeft /> Back to summit details
+          </Button>
+        ) : null}
       </CardHeader>
       <CardContent>
-        <form action={submit} className="grid gap-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form action={submit} className={`grid ${compact ? "gap-4" : "gap-5"}`}>
+          <div className={`grid gap-4 ${compact ? "" : "sm:grid-cols-2"}`}>
             <Field label="Startup name" name="name" placeholder="Acme Labs" />
             <Field
               label="Website"
@@ -115,11 +134,11 @@ export function NewListingForm() {
               required
               minLength={20}
               maxLength={5000}
-              rows={5}
+              rows={compact ? 3 : 5}
               placeholder="What are you building, for whom, and why does it matter?"
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={`grid gap-4 ${compact ? "" : "sm:grid-cols-2"}`}>
             <Field
               label="Checkout email"
               name="email"

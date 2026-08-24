@@ -26,7 +26,7 @@ export default function StartPage() {
           {[
             "No account required before checkout",
             "Whole-dollar, one-time payments only",
-            "Passwordless management link by email",
+            "Use the checkout email for dashboard access",
             "Listing and lifetime history survive every avalanche",
           ].map((item) => (
             <li key={item} className="flex items-center gap-3">

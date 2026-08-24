@@ -4,10 +4,6 @@
     {
       "path": "/api/cron/seasons",
       "schedule": "0 0 * * 1"
-    },
-    {
-      "path": "/api/cron/notifications",
-      "schedule": "0 12 * * 0"
     }
   ]
 }

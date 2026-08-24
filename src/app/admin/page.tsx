@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Download,
-  Mail,
   RefreshCw,
   Save,
   Settings2,
@@ -482,30 +481,6 @@ export default async function AdminPage({
                   provider-backed idempotent replay and an audit record.
                 </AlertDescription>
               </Alert>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="size-5" /> Email preview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-xl border bg-background/30 p-5">
-                <div className="text-xs uppercase tracking-widest text-primary">
-                  SUMMITWAR
-                </div>
-                <h3 className="mt-4 text-xl font-semibold">
-                  Your climb is verified.
-                </h3>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Your payment was applied atomically. Your actual rank appears
-                  here. Rankings may continue to change before the avalanche.
-                </p>
-                <Button className="mt-5" size="sm">
-                  View the mountain
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

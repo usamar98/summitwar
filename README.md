@@ -7,10 +7,10 @@ SummitWar is a production-oriented competitive startup discovery application for
 - Next.js 16 App Router, strict TypeScript, React Server Components, Tailwind CSS 4, and owned shadcn/ui source components
 - Original responsive SVG mountain with 50 camps, keyboard/tap detail drawer, premium top-three treatment, summit beam, Realtime rank refresh, and reduced-motion behavior
 - Public mountain, immutable activity feed, Base Camp search/filtering, startup profiles, statistics, rules, Hall of Fame, and seven dynamic 1200×630 share-card variants
-- Passwordless Supabase Auth owner dashboard with profile/logo editing, metrics, rank history, competitors, top-ups, share assets, and notification preferences
-- Allowlisted admin dashboard for moderation, listing edits, payments, idempotent provider replay, webhooks, seasons, testimonials, settings, email preview, CSV exports, and audit history
+- Passwordless Supabase Auth owner dashboard with profile/logo editing, metrics, rank history, competitors, top-ups, and share assets
+- Allowlisted admin dashboard for moderation, listing edits, payments, idempotent provider replay, webhooks, seasons, testimonials, settings, CSV exports, and audit history
 - Supabase Postgres migration containing indexed tables, restrictive RLS, storage rules, analytics deduplication, rate limits, season rotation, and an atomic payment/ranking transaction
-- Stripe-hosted Checkout provider abstraction, signed webhook verification with the official Stripe SDK, Resend email delivery, and safe development fallbacks
+- Stripe-hosted Checkout provider abstraction, signed webhook verification with the official Stripe SDK, and safe development fallbacks
 - Vitest domain/security coverage and Playwright journeys
 
 ## Non-negotiable integrity rules
@@ -25,7 +25,6 @@ Verified revenue is separate from admin activity. There is no admin action for m
 - npm 10 or newer
 - A Supabase project on a supported Postgres version
 - A Stripe account
-- Optional: Resend account
 - Optional for local database testing: Docker Desktop and the current Supabase CLI
 
 ## Local setup
@@ -96,17 +95,10 @@ Subscribe it to `checkout.session.completed` and `checkout.session.async_payment
 
 The metadata sent on both the Checkout Session and PaymentIntent contains `summitwar_payment_id` and `summitwar_listing_id`. The webhook trusts the pending payment stored server-side—not browser amounts or redirect query parameters. A stale quote still credits the paid amount and returns the actual resulting rank.
 
-## Resend
-
-Set `RESEND_API_KEY` and a verified `RESEND_FROM_EMAIL`. Without a key, development emits a structured preview event containing only the subject; it does not log the recipient address or message body. Implemented templates cover successful listing/climb, summit capture, overtaken, upcoming avalanche, and season victory.
-
-The Sunday notification cron respects owner preferences and stores a unique delivery row, preventing duplicate reminders. The Monday season cron sends victory mail only after the atomic close/open transaction succeeds.
-
 ## Weekly season cron
 
-`vercel.json` defines two UTC jobs:
+`vercel.json` defines one UTC job:
 
-- Sunday 12:00 — upcoming avalanche notifications
 - Monday 00:00 — atomically close the prior season, archive champion/runner-up, reset seasonal fields, and start the new season
 
 Vercel sends `Authorization: Bearer $CRON_SECRET`. Set a random secret of at least 32 characters. The route uses constant-time comparison. The database also takes a transaction-scoped advisory lock, so concurrent cron/manual requests cannot create two active seasons.

@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   ArrowDownToLine,
   ArrowUp,
-  Bell,
   ChartNoAxesCombined,
   Crown,
   Eye,
@@ -36,7 +35,7 @@ import {
   isoDaysAgo,
 } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { updateListingAction, updateNotificationsAction } from "./actions";
+import { updateListingAction } from "./actions";
 
 export const metadata: Metadata = {
   title: "Owner dashboard",
@@ -123,7 +122,7 @@ export default async function DashboardPage() {
       </div>
     );
 
-  const [snapshots, views, clicks, holds, prefs, ranked] = await Promise.all([
+  const [snapshots, views, clicks, holds, ranked] = await Promise.all([
     supabase
       .from("rank_snapshots")
       .select("rank,altitude_meters,captured_at")
@@ -146,11 +145,6 @@ export default async function DashboardPage() {
       .eq("listing_id", listing.id)
       .order("started_at", { ascending: false })
       .limit(20),
-    supabase
-      .from("notification_preferences")
-      .select("*")
-      .eq("owner_id", user.id)
-      .maybeSingle(),
     supabase
       .from("listings")
       .select("id,name,slug,current_rank,current_season_spend_cents")
@@ -191,13 +185,6 @@ export default async function DashboardPage() {
     ? (listing.outboundClicks / listing.profileViews) * 100
     : 0;
   const activity = dailySeries(views.data ?? [], clicks.data ?? []);
-  const preference = prefs.data ?? {
-    successful_climb: true,
-    overtaken: true,
-    summit_reached: true,
-    upcoming_avalanche: true,
-    season_victory: true,
-  };
   return (
     <div className="mx-auto max-w-[1320px] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
       <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
@@ -272,7 +259,6 @@ export default async function DashboardPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="climb">Top up</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-5 space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
@@ -455,58 +441,6 @@ export default async function DashboardPage() {
                 </div>
                 <Button type="submit" className="w-fit">
                   <Save /> Save profile
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="notifications" className="mt-5">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="size-5" /> Email notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form action={updateNotificationsAction} className="space-y-4">
-                {[
-                  [
-                    "successfulClimb",
-                    "Successful listing and climbs",
-                    preference.successful_climb,
-                  ],
-                  ["overtaken", "When we are overtaken", preference.overtaken],
-                  [
-                    "summitReached",
-                    "When we reach the summit",
-                    preference.summit_reached,
-                  ],
-                  [
-                    "upcomingAvalanche",
-                    "Upcoming avalanche reminder",
-                    preference.upcoming_avalanche,
-                  ],
-                  [
-                    "seasonVictory",
-                    "Season victory",
-                    preference.season_victory,
-                  ],
-                ].map(([name, label, checked]) => (
-                  <label
-                    key={String(name)}
-                    className="flex items-center justify-between rounded-xl border p-4 text-sm"
-                  >
-                    <span>{String(label)}</span>
-                    <input
-                      className="size-4 accent-[var(--primary)]"
-                      type="checkbox"
-                      name={String(name)}
-                      defaultChecked={Boolean(checked)}
-                    />
-                  </label>
-                ))}
-                <Button type="submit">
-                  <Save /> Save preferences
                 </Button>
               </form>
             </CardContent>

@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import type Stripe from "stripe";
-import { sendTransactionalEmail } from "@/lib/email/send";
 import { parseStripeCheckoutEvent } from "@/lib/payments/stripe-events";
 import { getStripeClient } from "@/lib/payments/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -9,62 +8,7 @@ export const runtime = "nodejs";
 
 type PaymentResult = {
   duplicate?: boolean;
-  new_rank?: number;
-  old_rank?: number | null;
-  displaced_listing_id?: string | null;
 } | null;
-
-async function sendPaymentNotifications(
-  paymentId: string,
-  email: string | null,
-  result: PaymentResult,
-) {
-  try {
-    const supabase = createAdminClient();
-    if (email)
-      await sendTransactionalEmail({
-        to: email,
-        subject:
-          result?.new_rank === 1
-            ? "You captured the SummitWar summit"
-            : result?.old_rank == null
-              ? "Your startup is live on SummitWar"
-              : "Your SummitWar climb is verified",
-        text: `Your Stripe payment was verified and applied atomically. Your actual rank is #${result?.new_rank ?? "pending"}. Rankings may continue to change.`,
-      });
-    if (result?.displaced_listing_id) {
-      const { data: contacts } = await supabase
-        .from("listing_contacts")
-        .select("email,owner_id")
-        .eq("listing_id", result.displaced_listing_id);
-      for (const contact of contacts ?? []) {
-        let enabled = true;
-        if (contact.owner_id) {
-          const { data: preference } = await supabase
-            .from("notification_preferences")
-            .select("overtaken")
-            .eq("owner_id", contact.owner_id)
-            .maybeSingle();
-          enabled = preference?.overtaken ?? true;
-        }
-        if (enabled)
-          await sendTransactionalEmail({
-            to: contact.email,
-            subject: "Your startup was overtaken on SummitWar",
-            text: "Another verified climb captured the summit. Your listing and lifetime history remain, and you can reclaim the summit at any time.",
-          });
-      }
-    }
-  } catch (error) {
-    console.error(
-      JSON.stringify({
-        event: "payment.notification_failed",
-        paymentId,
-        message: error instanceof Error ? error.message : "unknown",
-      }),
-    );
-  }
-}
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -134,9 +78,6 @@ export async function POST(request: Request) {
   }
 
   const result = data as PaymentResult;
-  if (!result?.duplicate)
-    await sendPaymentNotifications(checkout.paymentId, checkout.email, result);
-
   return Response.json({
     received: true,
     duplicate: Boolean(result?.duplicate),

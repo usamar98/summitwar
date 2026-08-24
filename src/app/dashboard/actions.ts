@@ -69,20 +69,3 @@ export async function updateListingAction(formData: FormData) {
   if (error) throw new Error("Profile update failed");
   revalidatePath("/dashboard");
 }
-
-export async function updateNotificationsAction(formData: FormData) {
-  const user = await requireUser();
-  const supabase = createAdminClient();
-  const bool = (name: string) => formData.get(name) === "on";
-  const { error } = await supabase.from("notification_preferences").upsert({
-    owner_id: user.id,
-    successful_climb: bool("successfulClimb"),
-    overtaken: bool("overtaken"),
-    summit_reached: bool("summitReached"),
-    upcoming_avalanche: bool("upcomingAvalanche"),
-    season_victory: bool("seasonVictory"),
-    updated_at: new Date().toISOString(),
-  });
-  if (error) throw new Error("Notification update failed");
-  revalidatePath("/dashboard");
-}
