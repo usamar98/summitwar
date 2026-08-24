@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
+import { getPublicAppOrigin } from "@/lib/app-url";
 import { getHomeData } from "@/lib/data";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://summitwar.lol";
+  const base = getPublicAppOrigin();
   const data = await getHomeData();
   const staticPages = [
     "",

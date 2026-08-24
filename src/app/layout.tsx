@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SiteHeader } from "@/components/summitwar/site-header";
 import { SiteFooter } from "@/components/summitwar/site-footer";
 import { PresenceBeacon } from "@/components/summitwar/presence-beacon";
+import { getPublicAppUrl } from "@/lib/app-url";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -13,9 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://summitwar.lol",
-  ),
+  metadataBase: getPublicAppUrl(),
   title: {
     default: "SummitWar — The internet's highest startup position",
     template: "%s · SummitWar",

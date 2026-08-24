@@ -5,12 +5,13 @@ import type {
   CheckoutResult,
   PaymentProvider,
 } from "@/lib/payments/types";
+import { getPublicAppOrigin } from "@/lib/app-url";
 import { getStripeClient, hasStripeEnv } from "@/lib/payments/stripe";
 
 class StripePaymentProvider implements PaymentProvider {
   readonly name = "stripe" as const;
   async createCheckout(input: CheckoutRequest): Promise<CheckoutResult> {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const appUrl = getPublicAppOrigin("http://localhost:3000");
     const session = await getStripeClient().checkout.sessions.create(
       {
         mode: "payment",

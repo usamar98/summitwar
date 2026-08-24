@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
+import { getPublicAppOrigin } from "@/lib/app-url";
+
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://summitwar.lol";
+  const base = getPublicAppOrigin();
   return {
     rules: [
       {
