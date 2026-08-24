@@ -1,4 +1,4 @@
-export const DEFAULT_PUBLIC_APP_URL = "https://summitwar.lol";
+export const DEFAULT_PUBLIC_APP_URL = "https://www.summitwar.lol";
 
 function parseHttpUrl(value: string): URL | null {
   try {

@@ -1,6 +1,6 @@
 # SummitWar
 
-SummitWar is a production-oriented competitive startup discovery application for [SummitWar.lol](https://summitwar.lol). Founders buy one-time, whole-dollar climbs; each verified dollar adds 100 metres during a Monday-to-Sunday UTC season. Placement is explicitly sponsored and uses no votes, reviews, or hidden scoring.
+SummitWar is a production-oriented competitive startup discovery application for [SummitWar.lol](https://www.summitwar.lol). Founders buy one-time, whole-dollar climbs; each verified dollar adds 100 metres during a Monday-to-Sunday UTC season. Placement is explicitly sponsored and uses no votes, reviews, or hidden scoring.
 
 ## What is included
 
@@ -113,7 +113,7 @@ select public.rotate_weekly_season(now());
 
 1. Import the repository into Vercel.
 2. Add every value from `.env.example` for Production. Use a Stripe `sk_live_...` key only after test-mode Checkout and webhook verification succeeds.
-3. Set `NEXT_PUBLIC_APP_URL=https://summitwar.lol`. Stripe Checkout derives its success and cancellation URLs from this value.
+3. Set `NEXT_PUBLIC_APP_URL=https://www.summitwar.lol`. Stripe Checkout derives its success and cancellation URLs from this value. Configure the Stripe webhook directly at `https://www.summitwar.lol/api/webhooks/stripe`; Stripe webhook destinations must not rely on the apex-domain redirect.
 4. Leave `NEXT_PUBLIC_DEMO_MODE=false` in production.
 5. Deploy, then verify the two cron jobs under Project Settings → Cron Jobs.
 6. Add the production Auth callback to Supabase and the production webhook URL to Stripe.

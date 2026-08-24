@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowUpRight,
   Crown,
@@ -46,6 +47,7 @@ export function InteractiveMountain({
 }: {
   initialStartups: Startup[];
 }) {
+  const router = useRouter();
   const [startups, setStartups] = useState(initialStartups);
   const [selected, setSelected] = useState<Startup | null>(null);
   const [avalanche, setAvalanche] = useState(false);
@@ -71,13 +73,14 @@ export function InteractiveMountain({
           }
           summitId.current = payload.mountain[0]?.id;
           setStartups(payload.mountain);
+          router.refresh();
         },
       )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [router]);
 
   return (
     <>

@@ -46,7 +46,7 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "SummitWar",
-  url: "https://summitwar.lol",
+  url: "https://www.summitwar.lol",
   description: "A transparent sponsored startup ranking game.",
 };
 

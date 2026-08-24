@@ -3,6 +3,8 @@ import { ActivityFeed } from "@/components/summitwar/activity-feed";
 import { Badge } from "@/components/ui/badge";
 import { getHomeData } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Activity",
   description:
