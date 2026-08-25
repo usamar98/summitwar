@@ -315,6 +315,7 @@ function normalizeImageType(contentType: string | null) {
 
 export async function fetchProjectLogoAsset(
   logoUrls: string[],
+  maximumBytes = MAX_LOGO_BYTES,
 ): Promise<ProjectLogoAsset | null> {
   for (const logoUrl of logoUrls.slice(0, 6)) {
     try {
@@ -326,7 +327,7 @@ export async function fetchProjectLogoAsset(
         response.headers.get("content-type"),
       );
       if (!imageType) continue;
-      const bytes = await readLimitedBytes(response, MAX_LOGO_BYTES);
+      const bytes = await readLimitedBytes(response, maximumBytes);
       if (!bytes.byteLength) continue;
       return { bytes, ...imageType };
     } catch {

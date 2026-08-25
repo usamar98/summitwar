@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { ActivityFeed } from "@/components/summitwar/activity-feed";
 import { BaseCamp } from "@/components/summitwar/base-camp";
 import { InteractiveMountain } from "@/components/summitwar/mountain";
@@ -8,14 +9,43 @@ import {
 } from "@/components/summitwar/ranking-panels";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, MountainSnow } from "lucide-react";
+import {
+  Crown,
+  Eye,
+  MountainSnow,
+  RotateCcw,
+  TrendingDown,
+} from "lucide-react";
 import { getHomeData } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
+import { refreshListingMetadata } from "@/lib/listing-metadata";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 15;
 
 export default async function HomePage() {
   const data = await getHomeData();
+  const missingMetadata = [...data.mountain, ...data.baseCamp]
+    .filter((startup) => !startup.logoUrl)
+    .slice(0, 2);
+  if (!data.demo && missingMetadata.length) {
+    after(async () => {
+      const results = await Promise.allSettled(
+        missingMetadata.map((startup) =>
+          refreshListingMetadata({
+            id: startup.id,
+            website: startup.website,
+            currentLogoUrl: startup.logoUrl,
+          }),
+        ),
+      );
+      for (const result of results) {
+        if (result.status === "rejected") {
+          console.error("Project metadata refresh failed", result.reason);
+        }
+      }
+    });
+  }
   return (
     <>
       <LiveProof stats={data.stats} demo={data.demo} />
@@ -48,6 +78,30 @@ export default async function HomePage() {
               Plant your logo, climb the live leaderboard, and turn every metre
               into a moment your next visitor remembers.
             </p>
+            <div
+              aria-label="Mountain takeover terms"
+              className="mt-6 flex flex-wrap justify-center gap-2"
+            >
+              <Badge
+                variant="outline"
+                className="h-auto gap-1.5 rounded-full border-primary/30 bg-primary/8 px-3 py-1.5 text-[10px] text-primary"
+              >
+                <Crown className="size-3" /> #1 · Capture the Summit
+              </Badge>
+              <Badge
+                variant="outline"
+                className="h-auto gap-1.5 rounded-full border-white/12 bg-white/[.035] px-3 py-1.5 text-[10px] text-muted-foreground"
+              >
+                <TrendingDown className="size-3" /> #2–9 · Knocked down
+              </Badge>
+              <Badge
+                variant="outline"
+                className="h-auto gap-1.5 rounded-full border-accent/30 bg-accent/8 px-3 py-1.5 text-[10px] text-accent"
+              >
+                <RotateCcw className="size-3" /> Previous winner · Reclaim the
+                Summit
+              </Badge>
+            </div>
           </div>
           <div className="grid items-start gap-4 xl:grid-cols-[236px_minmax(0,1fr)_286px]">
             <div className="order-3 xl:order-1">

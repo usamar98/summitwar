@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, ArrowUpRight, Loader2, ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Loader2,
+  ScanSearch,
+  ShieldCheck,
+} from "lucide-react";
+import { StartupMark } from "@/components/summitwar/startup-mark";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +23,11 @@ type CheckoutResponse = {
   checkoutUrl?: string;
   error?: string;
   quotedMinimumCents?: number;
+};
+
+type ProjectPreview = {
+  heading: string | null;
+  logoDataUrl: string | null;
 };
 
 async function beginCheckout(payload: Record<string, unknown>) {
@@ -39,6 +51,45 @@ export function NewListingForm({
 } = {}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState("");
+  const [website, setWebsite] = useState("");
+  const [tagline, setTagline] = useState("");
+  const [preview, setPreview] = useState<ProjectPreview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const taglineEdited = useRef(false);
+
+  useEffect(() => {
+    const link = website.trim();
+    if (!link || !link.includes(".")) return;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setPreviewing(true);
+      try {
+        const response = await fetch("/api/project-preview", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ website: link }),
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Preview unavailable");
+        const result = (await response.json()) as ProjectPreview;
+        setPreview(result);
+        if (result.heading && !taglineEdited.current) {
+          setTagline(result.heading);
+        }
+      } catch (caught) {
+        if (!(caught instanceof DOMException && caught.name === "AbortError")) {
+          setPreview(null);
+        }
+      } finally {
+        if (!controller.signal.aborted) setPreviewing(false);
+      }
+    }, 550);
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [website]);
   async function submit(formData: FormData) {
     setPending(true);
     setError(null);
@@ -91,12 +142,20 @@ export function NewListingForm({
       <CardContent>
         <form action={submit} className={`grid ${compact ? "gap-4" : "gap-5"}`}>
           <div className={`grid gap-4 ${compact ? "" : "sm:grid-cols-2"}`}>
-            <Field label="Startup name" name="name" placeholder="Acme Labs" />
             <Field
-              label="Website"
+              label="Project name"
+              name="name"
+              placeholder="Acme Labs"
+              value={projectName}
+              onChange={(event) => setProjectName(event.target.value)}
+            />
+            <Field
+              label="Project link"
               name="website"
               placeholder="acme.com"
               type="url"
+              value={website}
+              onChange={(event) => setWebsite(event.target.value)}
             />
             <Field
               label="Founder name"
@@ -123,6 +182,11 @@ export function NewListingForm({
               name="tagline"
               required
               maxLength={160}
+              value={tagline}
+              onChange={(event) => {
+                taglineEdited.current = true;
+                setTagline(event.target.value);
+              }}
               placeholder="Used only when your website has no project description."
             />
             <p className="text-[11px] leading-4 text-muted-foreground">
@@ -130,6 +194,39 @@ export function NewListingForm({
               logo when the listing is created.
             </p>
           </div>
+          {previewing || preview ? (
+            <div
+              aria-live="polite"
+              className="rounded-xl border border-accent/18 bg-accent/[.045] p-3"
+            >
+              <div className="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[.14em] text-accent">
+                {previewing ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <ScanSearch className="size-3" />
+                )}
+                {previewing ? "Reading project link" : "Project detected"}
+              </div>
+              {preview ? (
+                <div className="flex items-center gap-3 rounded-lg border border-white/8 bg-background/45 p-3">
+                  <StartupMark
+                    name={projectName || "Project"}
+                    logoUrl={preview.logoDataUrl}
+                    className="size-10 rounded-lg"
+                  />
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold">
+                      {projectName || "Your project"}
+                    </div>
+                    <div className="line-clamp-2 text-[11px] leading-4 text-muted-foreground">
+                      {preview.heading ??
+                        "The link is reachable; keep your fallback heading below."}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
             <Textarea

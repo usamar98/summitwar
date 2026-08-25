@@ -1,134 +1,118 @@
 import Link from "next/link";
-import { ArrowUpRight, Crown, Flag, MountainSnow } from "lucide-react";
+import {
+  ArrowUpRight,
+  Crown,
+  MountainSnow,
+  RotateCcw,
+  TrendingDown,
+} from "lucide-react";
 import { StartupMark } from "@/components/summitwar/startup-mark";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import type { Startup } from "@/lib/types";
 
-const TOP_PROJECT_COUNT = 8;
-
-function EmptyRank({ rank }: { rank: number }) {
-  return (
-    <Link
-      href="/start"
-      className="group flex min-h-14 items-center gap-3 rounded-xl border border-dashed border-white/10 bg-white/[.025] px-3 py-2.5 transition-colors hover:border-primary/35 hover:bg-primary/5"
-    >
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-white/10 font-mono text-[11px] text-muted-foreground">
-        {rank}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="text-xs font-medium text-muted-foreground">
-          Open camp
-        </div>
-        <div className="text-[10px] text-muted-foreground/65">
-          Plant your flag
-        </div>
-      </div>
-      <ArrowUpRight className="size-3.5 text-muted-foreground transition-colors group-hover:text-primary" />
-    </Link>
-  );
-}
-
-function SummitOwner({ startup }: { startup: Startup | null }) {
-  if (!startup) {
-    return (
-      <div className="rounded-xl border border-dashed border-primary/25 bg-primary/5 p-4">
-        <Badge className="bg-primary/10 text-primary">Summit unclaimed</Badge>
-        <h3 className="mt-3 text-lg font-semibold">Your project could lead.</h3>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Claim the first camp and put your logo on the mountain.
-        </p>
-        <Button asChild size="sm" className="mt-4 w-full">
-          <Link href="/start">
-            Plant the first flag <ArrowUpRight />
-          </Link>
-        </Button>
-      </div>
-    );
+function statusForProject(startup: Startup, rank: number) {
+  if (rank === 1) {
+    return {
+      label: "Capture the Summit",
+      icon: Crown,
+      className: "border-primary/30 bg-primary/10 text-primary",
+    };
   }
-
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/12 via-primary/5 to-transparent p-4">
-      <div className="pointer-events-none absolute -right-10 -top-12 size-32 rounded-full bg-primary/15 blur-3xl" />
-      <div className="relative flex items-center justify-between gap-3">
-        <Badge className="bg-primary text-primary-foreground">
-          <Crown className="size-3" /> Summit owner
-        </Badge>
-        <span className="font-mono text-[11px] font-semibold text-primary">
-          #1
-        </span>
-      </div>
-      <div className="relative mt-4 flex min-w-0 items-center gap-3">
-        <StartupMark
-          name={startup.name}
-          logoUrl={startup.logoUrl}
-          className="size-12 rounded-xl ring-1 ring-primary/50"
-        />
-        <div className="min-w-0">
-          <h3 className="truncate text-base font-semibold tracking-tight">
-            {startup.name}
-          </h3>
-          <p className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-muted-foreground">
-            {startup.tagline}
-          </p>
-        </div>
-      </div>
-      <div className="relative mt-4 grid grid-cols-[1fr_auto] gap-2">
-        <Button
-          asChild
-          size="sm"
-          className="bg-primary text-primary-foreground"
-        >
-          <Link
-            href={`/checkout?listing=${startup.id}&amount=${startup.seasonSpendCents / 100 + 1}`}
-          >
-            Take the Summit <Flag />
-          </Link>
-        </Button>
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-          aria-label={`View ${startup.name}`}
-        >
-          <Link href={`/startup/${startup.slug}`}>
-            <ArrowUpRight />
-          </Link>
-        </Button>
-      </div>
-    </div>
-  );
+  if (startup.hasHeldSummit || startup.summitWins > 0) {
+    return {
+      label: "Reclaim the Summit",
+      icon: RotateCcw,
+      className: "border-accent/30 bg-accent/10 text-accent",
+    };
+  }
+  return {
+    label: "Knocked down",
+    icon: TrendingDown,
+    className: "border-white/12 bg-white/5 text-muted-foreground",
+  };
 }
 
-function TopRank({ startup, rank }: { startup: Startup; rank: number }) {
+function ProjectSectorCard({
+  startup,
+  latest,
+}: {
+  startup: Startup;
+  latest: boolean;
+}) {
+  const rank = startup.currentRank ?? 1;
+  const status = statusForProject(startup, rank);
+  const StatusIcon = status.icon;
+  const submitted = new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(startup.createdAt));
+
   return (
-    <Link
-      href={`/startup/${startup.slug}`}
-      className="group flex min-h-14 items-center gap-3 rounded-xl border border-white/8 bg-white/[.025] px-3 py-2.5 transition-colors hover:border-accent/30 hover:bg-accent/5"
+    <article
+      className={`relative overflow-hidden rounded-xl border p-3.5 ${
+        rank === 1
+          ? "border-primary/30 bg-gradient-to-br from-primary/10 to-transparent"
+          : "border-white/9 bg-white/[.025]"
+      }`}
     >
-      <span className="w-5 shrink-0 text-center font-mono text-[11px] font-semibold text-muted-foreground">
-        {rank}
-      </span>
-      <StartupMark
-        name={startup.name}
-        logoUrl={startup.logoUrl}
-        className="size-8 rounded-lg"
-      />
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-xs font-semibold">{startup.name}</div>
-        <div className="truncate text-[10px] text-muted-foreground">
-          {startup.tagline}
+      <div className="flex items-center justify-between gap-3">
+        <div className="font-mono text-[9px] font-semibold uppercase tracking-[.18em] text-muted-foreground">
+          Mountain sector #{rank}
         </div>
+        <span className="font-mono text-[10px] text-primary">#{rank}</span>
       </div>
-      <ArrowUpRight className="size-3.5 text-muted-foreground transition-colors group-hover:text-accent" />
-    </Link>
+      <div className="mt-3 rounded-xl border border-white/10 bg-background/45 p-3">
+        <div className="mb-2 text-[9px] text-muted-foreground">
+          Held by this project
+        </div>
+        <Link
+          href={`/startup/${startup.slug}`}
+          className="group flex min-w-0 items-center gap-3"
+        >
+          <StartupMark
+            name={startup.name}
+            logoUrl={startup.logoUrl}
+            className="size-11 rounded-lg"
+          />
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-sm font-semibold tracking-tight">
+              {startup.name}
+            </h3>
+            <p className="mt-0.5 line-clamp-2 text-[10px] leading-4 text-muted-foreground">
+              {startup.tagline}
+            </p>
+          </div>
+          <ArrowUpRight className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+        </Link>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <Badge variant="outline" className={status.className}>
+          <StatusIcon className="size-3" /> {status.label}
+        </Badge>
+        {latest ? (
+          <span className="text-[9px] font-medium uppercase tracking-[.12em] text-accent">
+            Latest submitted project
+          </span>
+        ) : (
+          <time
+            dateTime={startup.createdAt}
+            className="text-[9px] text-muted-foreground"
+          >
+            Submitted {submitted}
+          </time>
+        )}
+      </div>
+    </article>
   );
 }
 
 export function SummitLeaders({ startups }: { startups: Startup[] }) {
-  const slots = Array.from(
-    { length: TOP_PROJECT_COUNT },
-    (_, index) => startups[index] ?? null,
+  const latestProject = startups.reduce<Startup | null>(
+    (latest, startup) =>
+      !latest || startup.createdAt > latest.createdAt ? startup : latest,
+    null,
   );
   return (
     <aside
@@ -138,25 +122,29 @@ export function SummitLeaders({ startups }: { startups: Startup[] }) {
       <div className="mb-3 flex items-end justify-between px-1">
         <div>
           <div className="text-[10px] font-medium uppercase tracking-[.18em] text-primary">
-            Front of the climb
+            Project strongholds
           </div>
-          <h2 className="mt-1 text-base font-semibold">Top 8 projects</h2>
+          <h2 className="mt-1 text-base font-semibold">Ranks 1–8</h2>
         </div>
         <span className="font-mono text-[10px] text-muted-foreground">
           01—08
         </span>
       </div>
-      <div className="space-y-2">
-        <SummitOwner startup={slots[0]} />
-        {slots.slice(1).map((startup, index) => {
-          const rank = index + 2;
-          return startup ? (
-            <TopRank key={startup.id} startup={startup} rank={rank} />
-          ) : (
-            <EmptyRank key={rank} rank={rank} />
-          );
-        })}
-      </div>
+      {startups.length ? (
+        <div className="grid max-h-[590px] gap-2 overflow-y-auto pr-1">
+          {startups.map((startup) => (
+            <ProjectSectorCard
+              key={startup.id}
+              startup={startup}
+              latest={startup.id === latestProject?.id}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-primary/25 bg-primary/5 p-4 text-xs leading-5 text-muted-foreground">
+          No project holds a top-eight sector yet.
+        </div>
+      )}
     </aside>
   );
 }

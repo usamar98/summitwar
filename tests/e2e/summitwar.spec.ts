@@ -15,6 +15,13 @@ test("renders the live homepage without browser errors", async ({ page }) => {
   await expect(
     page.getByRole("img", { name: /weekly startup mountain/i }),
   ).toBeVisible();
+  await expect(page.getByText("#1 · Capture the Summit")).toBeVisible();
+  await expect(page.getByText("#2–9 · Knocked down")).toBeVisible();
+  await expect(
+    page.getByText("Previous winner · Reclaim the Summit"),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ranks 1–8" })).toBeVisible();
+  await expect(page.getByText("Open camp")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^Rank / })).toHaveCount(50);
   await expect(
     page.locator(
@@ -29,9 +36,22 @@ test("renders the live homepage without browser errors", async ({ page }) => {
 test("creates a listing through the development payment adapter", async ({
   page,
 }) => {
+  await page.route("**/api/project-preview", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        heading: "Project heading detected from the submitted link.",
+        logoDataUrl: null,
+      }),
+    });
+  });
   await page.goto("/start");
-  await page.getByLabel("Startup name").fill("E2E Peak");
-  await page.getByLabel("Website").fill("https://e2e.example.com");
+  await page.getByLabel("Project name").fill("E2E Peak");
+  await page.getByLabel("Project link").fill("https://e2e.example.com");
+  await expect(page.getByText("Project detected")).toBeVisible();
+  await expect(page.getByLabel("Project heading fallback")).toHaveValue(
+    "Project heading detected from the submitted link.",
+  );
   await page.getByLabel("Founder name").fill("Test Founder");
   await page.getByLabel("X handle").fill("@e2epeak");
   await page.getByLabel("Category").fill("Testing");
@@ -57,8 +77,7 @@ test("checkout success never claims that the browser changed rank", async ({
   ).toBeVisible();
 });
 test("shows live climb choices for an overtake", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: /Take the Summit/ }).click();
+  await page.goto("/checkout?listing=demo-2");
   await expect(page.getByRole("tab", { name: "Take summit" })).toBeVisible();
   await expect(
     page.getByText(/Checkout does not reserve a rank/),

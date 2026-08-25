@@ -104,6 +104,7 @@ export const demoStartups: Startup[] = names.map((name, index) => {
     profileViews: clicks * 3,
     outboundClicks: clicks,
     summitWins: index < 3 ? 3 - index : 0,
+    hasHeldSummit: index < 3,
     totalSummitSeconds: index === 0 ? 14120 : index === 1 ? 8600 : 0,
     firstReachedAt: new Date(
       startsAt.getTime() + index * 120_000,

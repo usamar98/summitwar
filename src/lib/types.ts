@@ -25,6 +25,7 @@ export type Startup = {
   profileViews: number;
   outboundClicks: number;
   summitWins: number;
+  hasHeldSummit: boolean;
   totalSummitSeconds: number;
   firstReachedAt: string;
   createdAt: string;

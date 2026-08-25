@@ -63,6 +63,7 @@ export function mapListing(row: DbListing): Startup {
     profileViews: row.lifetime_profile_views,
     outboundClicks: row.total_outbound_clicks,
     summitWins: row.summit_wins,
+    hasHeldSummit: false,
     totalSummitSeconds: row.total_summit_seconds,
     firstReachedAt: row.first_reached_current_spend_at,
     createdAt: row.created_at,
@@ -156,6 +157,7 @@ export const getHomeData = cache(async (): Promise<HomeData> => {
     metricsResult,
     statsResult,
     testimonialsResult,
+    summitHoldsResult,
   ] = await Promise.all([
     supabase
       .from("listings")
@@ -180,10 +182,23 @@ export const getHomeData = cache(async (): Promise<HomeData> => {
       .eq("is_published", true)
       .order("sort_order")
       .limit(8),
+    supabase
+      .from("summit_holds")
+      .select("listing_id")
+      .order("started_at", { ascending: false })
+      .limit(500),
   ]);
 
   const listingRows = (listingsResult.data ?? []) as DbListing[];
   const listings = listingRows.map(mapListing);
+  const previousSummitIds = new Set(
+    ((summitHoldsResult.data ?? []) as Array<{ listing_id: string }>).map(
+      (row) => row.listing_id,
+    ),
+  );
+  for (const listing of listings) {
+    listing.hasHeldSummit = previousSummitIds.has(listing.id);
+  }
   const seasonRow = seasonResult.data as Record<string, unknown> | null;
   const season: Season = seasonRow
     ? {
