@@ -8,17 +8,14 @@ import {
   TentTree,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Countdown } from "@/components/summitwar/countdown";
 import { formatMoney, formatNumber } from "@/lib/format";
-import type { Season, SiteStats } from "@/lib/types";
+import type { SiteStats } from "@/lib/types";
 
 export function LiveProof({
   stats,
-  season,
   demo,
 }: {
   stats: SiteStats;
-  season: Season;
   demo: boolean;
 }) {
   const metrics = [
@@ -40,37 +37,31 @@ export function LiveProof({
   return (
     <section
       aria-label="Live platform metrics"
-      className="border-y border-white/7 bg-black/20"
+      className="border-b border-white/7 bg-black/25"
     >
-      <div className="mx-auto max-w-[1440px] px-4 py-4 sm:px-6 lg:px-10">
-        <div className="mb-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[.18em] text-muted-foreground">
-            <BarChart3 className="size-3.5 text-accent" /> Live proof{" "}
-            {demo ? (
-              <Badge
-                variant="outline"
-                className="border-primary/30 bg-primary/10 text-primary"
-              >
-                Demo data
-              </Badge>
-            ) : null}
-          </div>
-          <div className="text-right text-[10px] uppercase tracking-[.15em] text-muted-foreground">
-            <span className="hidden sm:inline">Avalanche in </span>
-            <Countdown end={season.endsAt} compact />
-          </div>
+      <div className="mx-auto flex max-w-[1440px] items-center gap-5 overflow-x-auto px-4 py-2.5 sm:px-6 lg:px-10">
+        <div className="flex shrink-0 items-center gap-2 border-r border-white/8 pr-5 text-[10px] font-medium uppercase tracking-[.18em] text-muted-foreground">
+          <BarChart3 className="size-3.5 text-accent" /> Live proof{" "}
+          {demo ? (
+            <Badge
+              variant="outline"
+              className="h-5 border-primary/30 bg-primary/10 px-1.5 text-[9px] text-primary"
+            >
+              Demo data
+            </Badge>
+          ) : null}
         </div>
-        <div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-3 xl:grid-cols-6">
+        <div className="flex min-w-max flex-1 items-center justify-between gap-6">
           {metrics.map(([Icon, label, value]) => (
-            <div key={label} className="flex items-center gap-3">
-              <span className="grid size-8 place-items-center rounded-lg bg-white/5 text-accent">
-                <Icon className="size-4" />
+            <div key={label} className="flex items-center gap-2">
+              <span className="grid size-6 place-items-center rounded-md bg-white/5 text-accent">
+                <Icon className="size-3.5" />
               </span>
               <div>
-                <div className="metric-number text-sm font-semibold text-foreground">
+                <div className="metric-number text-xs font-semibold text-foreground">
                   {value}
                 </div>
-                <div className="text-[11px] text-muted-foreground">{label}</div>
+                <div className="text-[9px] text-muted-foreground">{label}</div>
               </div>
             </div>
           ))}

@@ -117,14 +117,18 @@ export function NewListingForm({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="tagline">Tagline</Label>
+            <Label htmlFor="tagline">Project heading fallback</Label>
             <Input
               id="tagline"
               name="tagline"
               required
               maxLength={160}
-              placeholder="Describe the ascent in one sharp sentence."
+              placeholder="Used only when your website has no project description."
             />
+            <p className="text-[11px] leading-4 text-muted-foreground">
+              We automatically fetch your website&apos;s project heading and
+              logo when the listing is created.
+            </p>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>

@@ -103,8 +103,8 @@ export function InteractiveMountain({
         >
           <title id="mountain-title">SummitWar weekly startup mountain</title>
           <desc id="mountain-description">
-            The fifty highest sponsored startup placements, ordered from the
-            golden summit to base camp.
+            The fifty highest sponsored project placements, ordered from the
+            golden summit to base camp, with each project logo on its flag.
           </desc>
           <defs>
             <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
@@ -254,6 +254,22 @@ export function InteractiveMountain({
                     >
                       {initials(startup.name)}
                     </text>
+                    {startup.logoUrl ? (
+                      <>
+                        <clipPath id={`startup-logo-${rank}`}>
+                          <circle r={size / 2} />
+                        </clipPath>
+                        <image
+                          href={startup.logoUrl}
+                          x={-size / 2}
+                          y={-size / 2}
+                          width={size}
+                          height={size}
+                          preserveAspectRatio="xMidYMid slice"
+                          clipPath={`url(#startup-logo-${rank})`}
+                        />
+                      </>
+                    ) : null}
                     <rect
                       x={-11}
                       y={size / 2 + 5}

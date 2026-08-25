@@ -35,7 +35,9 @@ test("creates a listing through the development payment adapter", async ({
   await page.getByLabel("Founder name").fill("Test Founder");
   await page.getByLabel("X handle").fill("@e2epeak");
   await page.getByLabel("Category").fill("Testing");
-  await page.getByLabel("Tagline").fill("A startup built by Playwright.");
+  await page
+    .getByLabel("Project heading fallback")
+    .fill("A startup built by Playwright.");
   await page
     .getByLabel("Description")
     .fill(

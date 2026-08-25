@@ -4,6 +4,11 @@ import { getPaymentProvider } from "@/lib/payments/provider";
 import { createAdminClient, hasAdminSupabaseEnv } from "@/lib/supabase/admin";
 import { demoStartups } from "@/lib/demo-data";
 import { amountToOvertakeCents } from "@/lib/domain/ranking";
+import {
+  fetchProjectLogoAsset,
+  fetchProjectMetadata,
+  type ProjectLogoAsset,
+} from "@/lib/project-metadata";
 
 export async function POST(request: Request) {
   const parsed = checkoutSchema.safeParse(
@@ -37,11 +42,18 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const { data: season } = await supabase
+  const seasonPromise = supabase
     .from("seasons")
     .select("id")
     .eq("status", "active")
     .maybeSingle();
+  const metadataPromise = input.listing
+    ? fetchProjectMetadata(input.listing.website)
+    : Promise.resolve({ heading: null, logoUrls: [] });
+  const [{ data: season }, projectMetadata] = await Promise.all([
+    seasonPromise,
+    metadataPromise,
+  ]);
   if (!season)
     return NextResponse.json(
       { error: "The next season is being prepared. Try again shortly." },
@@ -50,6 +62,7 @@ export async function POST(request: Request) {
 
   let listingId = input.listingId;
   let startupName = input.listing?.name ?? "Startup";
+  let logoImport: Promise<ProjectLogoAsset | null> | null = null;
   if (listingId) {
     const { data: listing } = await supabase
       .from("listings")
@@ -69,7 +82,7 @@ export async function POST(request: Request) {
       .insert({
         slug,
         name: input.listing.name,
-        tagline: input.listing.tagline,
+        tagline: projectMetadata.heading ?? input.listing.tagline,
         description: input.listing.description,
         website_url: input.listing.website,
         normalized_url: input.listing.website,
@@ -93,15 +106,39 @@ export async function POST(request: Request) {
       );
     listingId = created.id;
     startupName = created.name;
+    if (projectMetadata.logoUrls.length) {
+      logoImport = fetchProjectLogoAsset(projectMetadata.logoUrls);
+    }
   }
   if (!listingId)
     return NextResponse.json({ error: "Missing listing" }, { status: 400 });
 
-  const { data: ranked } = await supabase
-    .from("listings")
-    .select("id,current_season_spend_cents,current_rank")
-    .eq("status", "approved")
-    .order("current_rank");
+  const [{ data: ranked }, logoAsset] = await Promise.all([
+    supabase
+      .from("listings")
+      .select("id,current_season_spend_cents,current_rank")
+      .eq("status", "approved")
+      .order("current_rank"),
+    logoImport ?? Promise.resolve(null),
+  ]);
+  if (logoAsset) {
+    const logoPath = `${listingId}/auto-${crypto.randomUUID()}.${logoAsset.extension}`;
+    const { error: uploadError } = await supabase.storage
+      .from("startup-logos")
+      .upload(logoPath, logoAsset.bytes, {
+        contentType: logoAsset.contentType,
+        upsert: false,
+      });
+    if (!uploadError) {
+      const logoUrl = supabase.storage
+        .from("startup-logos")
+        .getPublicUrl(logoPath).data.publicUrl;
+      await supabase
+        .from("listings")
+        .update({ logo_path: logoPath, logo_url: logoUrl })
+        .eq("id", listingId);
+    }
+  }
   const own = ranked?.find((item) => item.id === listingId);
   const ownSpend = Number(own?.current_season_spend_cents ?? 0);
   const target =
