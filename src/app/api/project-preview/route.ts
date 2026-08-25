@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
-  fetchProjectLogoAsset,
+  fetchProjectFaviconAsset,
   fetchProjectMetadata,
 } from "@/lib/project-metadata";
 import { allowInMemoryRequest, normalizePublicUrl } from "@/lib/security";
@@ -43,13 +43,16 @@ export async function POST(request: Request) {
   }
 
   const metadata = await fetchProjectMetadata(website);
-  const logo = await fetchProjectLogoAsset(metadata.logoUrls, 256 * 1024);
-  const logoDataUrl = logo
-    ? `data:${logo.contentType};base64,${Buffer.from(logo.bytes).toString("base64")}`
+  const favicon = await fetchProjectFaviconAsset(
+    metadata.faviconUrls,
+    256 * 1024,
+  );
+  const faviconDataUrl = favicon
+    ? `data:${favicon.contentType};base64,${Buffer.from(favicon.bytes).toString("base64")}`
     : null;
 
   return NextResponse.json(
-    { heading: metadata.heading, logoDataUrl },
+    { heading: metadata.heading, faviconDataUrl },
     { headers: { "cache-control": "no-store" } },
   );
 }

@@ -2,7 +2,7 @@ import "server-only";
 
 import { createAdminClient, hasAdminSupabaseEnv } from "@/lib/supabase/admin";
 import {
-  fetchProjectLogoAsset,
+  fetchProjectFaviconAsset,
   fetchProjectMetadata,
 } from "@/lib/project-metadata";
 
@@ -30,15 +30,17 @@ export async function refreshListingMetadata({
   if (metadata.heading) update.tagline = metadata.heading;
 
   let logoUrl = currentLogoUrl;
-  if (!logoUrl && metadata.logoUrls.length) {
-    const logo = await fetchProjectLogoAsset(metadata.logoUrls);
-    if (logo) {
+  const shouldReplaceWithFavicon =
+    !logoUrl || logoUrl.includes("/auto-") || logoUrl.includes("%2Fauto-");
+  if (shouldReplaceWithFavicon && metadata.faviconUrls.length) {
+    const favicon = await fetchProjectFaviconAsset(metadata.faviconUrls);
+    if (favicon) {
       const supabase = createAdminClient();
-      const logoPath = `${id}/auto-${crypto.randomUUID()}.${logo.extension}`;
+      const logoPath = `${id}/favicon-${crypto.randomUUID()}.${favicon.extension}`;
       const { error: uploadError } = await supabase.storage
         .from("startup-logos")
-        .upload(logoPath, logo.bytes, {
-          contentType: logo.contentType,
+        .upload(logoPath, favicon.bytes, {
+          contentType: favicon.contentType,
           upsert: false,
         });
       if (!uploadError) {

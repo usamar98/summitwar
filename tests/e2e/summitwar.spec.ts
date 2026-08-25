@@ -22,7 +22,7 @@ test("renders the live homepage without browser errors", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ranks 1–8" })).toBeVisible();
   await expect(
-    page.getByRole("link", {
+    page.getByRole("button", {
       name: "Challenge sector #1 with your project",
     }),
   ).toBeVisible();
@@ -47,7 +47,7 @@ test("creates a listing through the development payment adapter", async ({
       contentType: "application/json",
       body: JSON.stringify({
         heading: "Project heading detected from the submitted link.",
-        logoDataUrl: null,
+        faviconDataUrl: null,
       }),
     });
   });
@@ -73,6 +73,42 @@ test("creates a listing through the development payment adapter", async ({
   await page.getByRole("button", { name: /Continue to Stripe/ }).click();
   await expect(page).toHaveURL(/checkout\/success/);
   await expect(page.getByText(/Test checkout created/)).toBeVisible();
+});
+test("starts a project challenge directly inside the sector card", async ({
+  page,
+}) => {
+  let submitted: Record<string, unknown> | null = null;
+  await page.route("**/api/checkout", async (route) => {
+    submitted = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        checkoutUrl: "/checkout/success?payment_id=inline-challenge&demo=1",
+      }),
+    });
+  });
+  await page.goto("/");
+  const form = page.getByRole("form", {
+    name: "Challenge Northstar AI in sector 1",
+  });
+  await form.getByLabel("Project name").fill("Inline Peak");
+  await form.getByLabel("Project link").fill("https://inline.example.com");
+  await form.getByLabel(/X handle/).fill("@inlinepeak");
+  await form.getByLabel("Checkout email").fill("inline@example.com");
+  await form
+    .getByRole("button", { name: "Challenge sector #1 with your project" })
+    .click();
+  await expect(page).toHaveURL(/checkout\/success/);
+  expect(submitted).toMatchObject({
+    challengeListingId: "demo-1",
+    email: "inline@example.com",
+    quickListing: {
+      name: "Inline Peak",
+      website: "https://inline.example.com",
+      founderHandle: "@inlinepeak",
+    },
+  });
+  expect(submitted).not.toHaveProperty("amountDollars");
 });
 test("checkout success never claims that the browser changed rank", async ({
   page,

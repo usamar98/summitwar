@@ -2,11 +2,11 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   Crown,
-  Flag,
   MountainSnow,
   RotateCcw,
   TrendingDown,
 } from "lucide-react";
+import { SectorChallengeForm } from "@/components/summitwar/sector-challenge-form";
 import { StartupMark } from "@/components/summitwar/startup-mark";
 import { Badge } from "@/components/ui/badge";
 import type { Startup } from "@/lib/types";
@@ -139,16 +139,11 @@ function ProjectSectorCard({
           </time>
         )}
       </div>
-      <Link
-        href="/start"
-        className={`relative mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-center text-xs font-semibold transition-[filter,transform] hover:brightness-110 active:translate-y-px ${
-          rank === 1
-            ? "bg-primary text-primary-foreground"
-            : "bg-accent text-accent-foreground"
-        }`}
-      >
-        <Flag className="size-3.5" /> Challenge sector #{rank} with your project
-      </Link>
+      <SectorChallengeForm
+        startupId={startup.id}
+        startupName={startup.name}
+        rank={rank}
+      />
     </article>
   );
 }
@@ -173,7 +168,7 @@ export function SummitLeaders({ startups }: { startups: Startup[] }) {
         </span>
       </div>
       {startups.length ? (
-        <div className="grid max-h-[660px] gap-3 overflow-y-auto pr-1.5">
+        <div className="grid gap-3 xl:max-h-[820px] xl:overflow-y-auto xl:pr-1.5">
           {startups.map((startup) => (
             <ProjectSectorCard
               key={startup.id}

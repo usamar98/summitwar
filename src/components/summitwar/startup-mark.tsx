@@ -26,7 +26,7 @@ export function StartupMark({
       {logoUrl ? (
         <Image
           src={logoUrl}
-          alt={`${name} logo`}
+          alt={`${name} favicon`}
           fill
           sizes="64px"
           className="object-cover"

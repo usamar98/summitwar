@@ -5,9 +5,9 @@ import { createAdminClient, hasAdminSupabaseEnv } from "@/lib/supabase/admin";
 import { demoStartups } from "@/lib/demo-data";
 import { amountToOvertakeCents } from "@/lib/domain/ranking";
 import {
-  fetchProjectLogoAsset,
+  fetchProjectFaviconAsset,
   fetchProjectMetadata,
-  type ProjectLogoAsset,
+  type ProjectFaviconAsset,
 } from "@/lib/project-metadata";
 
 export async function POST(request: Request) {
@@ -20,7 +20,8 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   const input = parsed.data;
-  const amountCents = input.amountDollars * 100;
+  const submittedListing = input.quickListing ?? input.listing;
+  let amountCents = (input.amountDollars ?? 0) * 100;
 
   if (!hasAdminSupabaseEnv()) {
     if (process.env.NODE_ENV === "production")
@@ -29,12 +30,23 @@ export async function POST(request: Request) {
         { status: 503 },
       );
     const demo = demoStartups.find((item) => item.id === input.listingId);
+    const challenged = demoStartups.find(
+      (item) => item.id === input.challengeListingId,
+    );
+    if (input.quickListing) {
+      if (!challenged)
+        return NextResponse.json(
+          { error: "This project sector is no longer available" },
+          { status: 409 },
+        );
+      amountCents = amountToOvertakeCents(0, challenged.seasonSpendCents);
+    }
     const result = await getPaymentProvider({
       forceDevelopment: true,
     }).createCheckout({
       paymentId: crypto.randomUUID(),
       listingId: input.listingId ?? crypto.randomUUID(),
-      startupName: input.listing?.name ?? demo?.name ?? "New startup",
+      startupName: submittedListing?.name ?? demo?.name ?? "New startup",
       amountCents,
       email: input.email,
     });
@@ -49,20 +61,35 @@ export async function POST(request: Request) {
     .maybeSingle();
   const metadataPromise = input.listing
     ? fetchProjectMetadata(input.listing.website)
-    : Promise.resolve({ heading: null, logoUrls: [] });
-  const [{ data: season }, projectMetadata] = await Promise.all([
-    seasonPromise,
-    metadataPromise,
-  ]);
+    : input.quickListing
+      ? fetchProjectMetadata(input.quickListing.website)
+      : Promise.resolve({ heading: null, faviconUrls: [] });
+  const challengePromise = input.challengeListingId
+    ? supabase
+        .from("listings")
+        .select("id,status")
+        .eq("id", input.challengeListingId)
+        .maybeSingle()
+    : Promise.resolve({ data: null, error: null });
+  const [{ data: season }, projectMetadata, { data: challengedListing }] =
+    await Promise.all([seasonPromise, metadataPromise, challengePromise]);
   if (!season)
     return NextResponse.json(
       { error: "The next season is being prepared. Try again shortly." },
       { status: 409 },
     );
+  if (
+    input.quickListing &&
+    (!challengedListing || challengedListing.status !== "approved")
+  )
+    return NextResponse.json(
+      { error: "This project sector is no longer available" },
+      { status: 409 },
+    );
 
   let listingId = input.listingId;
-  let startupName = input.listing?.name ?? "Startup";
-  let logoImport: Promise<ProjectLogoAsset | null> | null = null;
+  let startupName = submittedListing?.name ?? "Startup";
+  let faviconImport: Promise<ProjectFaviconAsset | null> | null = null;
   if (listingId) {
     const { data: listing } = await supabase
       .from("listings")
@@ -75,21 +102,31 @@ export async function POST(request: Request) {
         { status: 404 },
       );
     startupName = listing.name;
-  } else if (input.listing) {
-    const slug = `${slugify(input.listing.name)}-${crypto.randomUUID().slice(0, 6)}`;
+  } else if (submittedListing) {
+    const heading =
+      projectMetadata.heading ??
+      (input.listing ? input.listing.tagline : submittedListing.name);
+    const slug = `${slugify(submittedListing.name)}-${crypto.randomUUID().slice(0, 6)}`;
     const { data: created, error } = await supabase
       .from("listings")
       .insert({
         slug,
-        name: input.listing.name,
-        tagline: projectMetadata.heading ?? input.listing.tagline,
-        description: input.listing.description,
-        website_url: input.listing.website,
-        normalized_url: input.listing.website,
-        founder_name: input.listing.founderName,
-        founder_x_handle: input.listing.founderHandle,
-        category: input.listing.category,
-        launch_year: input.listing.launchYear,
+        name: submittedListing.name,
+        tagline: heading,
+        description: input.listing
+          ? input.listing.description
+          : heading || `${submittedListing.name} is competing on SummitWar.`,
+        website_url: submittedListing.website,
+        normalized_url: submittedListing.website,
+        founder_name: input.listing
+          ? input.listing.founderName
+          : input.quickListing?.founderHandle ||
+            `${submittedListing.name} team`,
+        founder_x_handle: submittedListing.founderHandle,
+        category: input.listing ? input.listing.category : "Project",
+        launch_year: input.listing
+          ? input.listing.launchYear
+          : new Date().getUTCFullYear(),
         current_season_id: season.id,
       })
       .select("id,name")
@@ -106,27 +143,27 @@ export async function POST(request: Request) {
       );
     listingId = created.id;
     startupName = created.name;
-    if (projectMetadata.logoUrls.length) {
-      logoImport = fetchProjectLogoAsset(projectMetadata.logoUrls);
+    if (projectMetadata.faviconUrls.length) {
+      faviconImport = fetchProjectFaviconAsset(projectMetadata.faviconUrls);
     }
   }
   if (!listingId)
     return NextResponse.json({ error: "Missing listing" }, { status: 400 });
 
-  const [{ data: ranked }, logoAsset] = await Promise.all([
+  const [{ data: ranked }, faviconAsset] = await Promise.all([
     supabase
       .from("listings")
       .select("id,current_season_spend_cents,current_rank")
       .eq("status", "approved")
       .order("current_rank"),
-    logoImport ?? Promise.resolve(null),
+    faviconImport ?? Promise.resolve(null),
   ]);
-  if (logoAsset) {
-    const logoPath = `${listingId}/auto-${crypto.randomUUID()}.${logoAsset.extension}`;
+  if (faviconAsset) {
+    const logoPath = `${listingId}/favicon-${crypto.randomUUID()}.${faviconAsset.extension}`;
     const { error: uploadError } = await supabase.storage
       .from("startup-logos")
-      .upload(logoPath, logoAsset.bytes, {
-        contentType: logoAsset.contentType,
+      .upload(logoPath, faviconAsset.bytes, {
+        contentType: faviconAsset.contentType,
         upsert: false,
       });
     if (!uploadError) {
@@ -141,16 +178,32 @@ export async function POST(request: Request) {
   }
   const own = ranked?.find((item) => item.id === listingId);
   const ownSpend = Number(own?.current_season_spend_cents ?? 0);
-  const target =
-    input.target === "summit"
+  const target = input.quickListing
+    ? ranked?.find((item) => item.id === input.challengeListingId)
+    : input.target === "summit"
       ? ranked?.[0]
       : input.target === "next" && own?.current_rank && own.current_rank > 1
         ? ranked?.[own.current_rank - 2]
         : null;
+  if (input.quickListing && !target)
+    return NextResponse.json(
+      { error: "This project sector changed. Try another sector." },
+      { status: 409 },
+    );
   const quotedMinimum = target
     ? amountToOvertakeCents(ownSpend, Number(target.current_season_spend_cents))
     : 100;
-  if (input.target !== "custom" && amountCents < quotedMinimum)
+  if (input.quickListing) amountCents = quotedMinimum;
+  if (amountCents > 100_000 * 100)
+    return NextResponse.json(
+      { error: "This sector exceeds the maximum checkout amount" },
+      { status: 409 },
+    );
+  if (
+    !input.quickListing &&
+    input.target !== "custom" &&
+    amountCents < quotedMinimum
+  )
     return NextResponse.json(
       {
         error: "Ranking changed. Refresh the quote and try again.",
@@ -169,7 +222,7 @@ export async function POST(request: Request) {
       amount_cents: amountCents,
       requested_rank: target?.current_rank ?? null,
       quote_snapshot: {
-        target: input.target,
+        target: input.quickListing ? "challenge" : input.target,
         quoted_minimum_cents: quotedMinimum,
         calculated_at: new Date().toISOString(),
       },

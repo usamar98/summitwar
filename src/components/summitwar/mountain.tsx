@@ -104,7 +104,7 @@ export function InteractiveMountain({
           <title id="mountain-title">SummitWar weekly startup mountain</title>
           <desc id="mountain-description">
             The fifty highest sponsored project placements, ordered from the
-            golden summit to base camp, with each project logo on its flag.
+            golden summit to base camp, with each project favicon on its flag.
           </desc>
           <defs>
             <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">

@@ -25,13 +25,18 @@ export const maxDuration = 15;
 
 export default async function HomePage() {
   const data = await getHomeData();
-  const missingMetadata = [...data.mountain, ...data.baseCamp]
-    .filter((startup) => !startup.logoUrl)
+  const staleMetadata = [...data.mountain, ...data.baseCamp]
+    .filter(
+      (startup) =>
+        !startup.logoUrl ||
+        startup.logoUrl.includes("/auto-") ||
+        startup.logoUrl.includes("%2Fauto-"),
+    )
     .slice(0, 2);
-  if (!data.demo && missingMetadata.length) {
+  if (!data.demo && staleMetadata.length) {
     after(async () => {
       const results = await Promise.allSettled(
-        missingMetadata.map((startup) =>
+        staleMetadata.map((startup) =>
           refreshListingMetadata({
             id: startup.id,
             website: startup.website,
@@ -75,8 +80,8 @@ export default async function HomePage() {
               The highest point on the internet for ambitious projects.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-balance text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
-              Plant your logo, climb the live leaderboard, and turn every metre
-              into a moment your next visitor remembers.
+              Plant your favicon, climb the live leaderboard, and turn every
+              metre into a moment your next visitor remembers.
             </p>
             <div
               aria-label="Mountain takeover terms"

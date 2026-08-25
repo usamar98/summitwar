@@ -22,8 +22,12 @@ describe("project metadata", () => {
     );
 
     expect(result.heading).toBe("Build & ship with Acme.");
-    expect(result.logoUrls[0]).toBe("https://acme.example/apple.png");
-    expect(result.logoUrls).toContain("https://acme.example/social.png");
+    expect(result.faviconUrls[0]).toBe("https://acme.example/apple.png");
+    expect(result.faviconUrls).toContain("https://acme.example/favicon.ico");
+    expect(result.faviconUrls).toContain(
+      "https://www.google.com/s2/favicons?domain_url=https%3A%2F%2Facme.example&sz=128",
+    );
+    expect(result.faviconUrls).not.toContain("https://acme.example/social.png");
   });
 
   it("blocks private and reserved addresses from metadata requests", () => {

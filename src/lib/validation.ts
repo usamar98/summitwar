@@ -59,10 +59,45 @@ export const listingInputSchema = z.object({
     .max(new Date().getUTCFullYear()),
 });
 
+export const quickListingInputSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .transform((value) => sanitizePlainText(value, 80)),
+  website: z
+    .string()
+    .trim()
+    .transform((value, context) => {
+      try {
+        return normalizePublicUrl(value);
+      } catch {
+        context.addIssue({
+          code: "custom",
+          message: "Enter a valid public project link",
+        });
+        return z.NEVER;
+      }
+    }),
+  founderHandle: z
+    .string()
+    .trim()
+    .max(32)
+    .refine(
+      (value) => value === "" || /^@?[A-Za-z0-9_]{1,30}$/.test(value),
+      "Enter a valid X handle",
+    )
+    .transform((value) =>
+      value && !value.startsWith("@") ? `@${value}` : value,
+    ),
+});
+
 export const checkoutSchema = z
   .object({
     listingId: z.string().min(1).optional(),
-    amountDollars: z.coerce.number().int().min(1).max(100_000),
+    challengeListingId: z.string().min(1).optional(),
+    amountDollars: z.coerce.number().int().min(1).max(100_000).optional(),
     email: z
       .string()
       .trim()
@@ -71,13 +106,32 @@ export const checkoutSchema = z
       .transform((value) => value.toLowerCase()),
     target: z.enum(["next", "summit", "custom"]).default("custom"),
     listing: listingInputSchema.optional(),
+    quickListing: quickListingInputSchema.optional(),
   })
   .superRefine((value, context) => {
-    if (!value.listingId && !value.listing)
+    if (!value.listingId && !value.listing && !value.quickListing)
       context.addIssue({
         code: "custom",
         path: ["listing"],
         message: "Startup details are required",
+      });
+    if (value.quickListing && !value.challengeListingId)
+      context.addIssue({
+        code: "custom",
+        path: ["challengeListingId"],
+        message: "A project sector is required",
+      });
+    if (value.quickListing && (value.listing || value.listingId))
+      context.addIssue({
+        code: "custom",
+        path: ["quickListing"],
+        message: "Choose one listing flow",
+      });
+    if (!value.quickListing && value.amountDollars === undefined)
+      context.addIssue({
+        code: "custom",
+        path: ["amountDollars"],
+        message: "A climb amount is required",
       });
   });
 

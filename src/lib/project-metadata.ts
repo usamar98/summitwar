@@ -6,17 +6,17 @@ import { sanitizePlainText } from "@/lib/security";
 
 const MAX_REDIRECTS = 3;
 const MAX_HTML_BYTES = 512 * 1024;
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+const MAX_FAVICON_BYTES = 512 * 1024;
 const REQUEST_TIMEOUT_MS = 3_500;
 const USER_AGENT =
   "SummitWar metadata fetcher/1.0 (+https://www.summitwar.lol)";
 
 export type ProjectMetadata = {
   heading: string | null;
-  logoUrls: string[];
+  faviconUrls: string[];
 };
 
-export type ProjectLogoAsset = {
+export type ProjectFaviconAsset = {
   bytes: Uint8Array;
   contentType: "image/png" | "image/jpeg" | "image/webp" | "image/x-icon";
   extension: "png" | "jpg" | "webp" | "ico";
@@ -78,6 +78,16 @@ function resolveHttpUrl(value: string | undefined, baseUrl: URL) {
   }
 }
 
+function fallbackFaviconUrls(baseUrl: URL) {
+  const faviconServiceUrl = new URL("https://www.google.com/s2/favicons");
+  faviconServiceUrl.searchParams.set("domain_url", baseUrl.origin);
+  faviconServiceUrl.searchParams.set("sz", "128");
+  return [
+    new URL("/favicon.ico", baseUrl).toString(),
+    faviconServiceUrl.toString(),
+  ];
+}
+
 export function extractProjectMetadata(
   html: string,
   pageUrl: string,
@@ -85,7 +95,6 @@ export function extractProjectMetadata(
   const baseUrl = new URL(pageUrl);
   const headings = new Map<string, string>();
   const icons: Array<{ url: string; score: number }> = [];
-  const socialImages: string[] = [];
 
   for (const tag of html.match(/<(?:meta|link)\b[^>]*>/gi) ?? []) {
     const attributes = tagAttributes(tag);
@@ -107,10 +116,6 @@ export function extractProjectMetadata(
         ].includes(key)
       ) {
         headings.set(key, content);
-      }
-      if (content && ["og:logo", "og:image", "twitter:image"].includes(key)) {
-        const url = resolveHttpUrl(content, baseUrl);
-        if (url) socialImages.push(url);
       }
       continue;
     }
@@ -135,13 +140,15 @@ export function extractProjectMetadata(
       headings.get("twitter:title") ??
       titleMatch?.[1],
   );
-  const logoUrls = [
-    ...icons.sort((a, b) => b.score - a.score).map((item) => item.url),
-    ...socialImages,
-    new URL("/favicon.ico", baseUrl).toString(),
+  const faviconUrls = [
+    ...icons
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map((item) => item.url),
+    ...fallbackFaviconUrls(baseUrl),
   ].filter((url, index, values) => values.indexOf(url) === index);
 
-  return { heading, logoUrls };
+  return { heading, faviconUrls };
 }
 
 function isPublicIpv4(address: string) {
@@ -284,7 +291,7 @@ export async function fetchProjectMetadata(
     ) {
       return {
         heading: null,
-        logoUrls: [new URL("/favicon.ico", url).toString()],
+        faviconUrls: fallbackFaviconUrls(url),
       };
     }
     const bytes = await readLimitedBytes(response, MAX_HTML_BYTES);
@@ -293,7 +300,14 @@ export async function fetchProjectMetadata(
       url.toString(),
     );
   } catch {
-    return { heading: null, logoUrls: [] };
+    try {
+      return {
+        heading: null,
+        faviconUrls: fallbackFaviconUrls(new URL(websiteUrl)),
+      };
+    } catch {
+      return { heading: null, faviconUrls: [] };
+    }
   }
 }
 
@@ -313,14 +327,14 @@ function normalizeImageType(contentType: string | null) {
   return null;
 }
 
-export async function fetchProjectLogoAsset(
-  logoUrls: string[],
-  maximumBytes = MAX_LOGO_BYTES,
-): Promise<ProjectLogoAsset | null> {
-  for (const logoUrl of logoUrls.slice(0, 6)) {
+export async function fetchProjectFaviconAsset(
+  faviconUrls: string[],
+  maximumBytes = MAX_FAVICON_BYTES,
+): Promise<ProjectFaviconAsset | null> {
+  for (const faviconUrl of faviconUrls.slice(0, 6)) {
     try {
       const { response } = await fetchPublicResource(
-        logoUrl,
+        faviconUrl,
         "image/png,image/jpeg,image/webp,image/x-icon;q=0.9",
       );
       const imageType = normalizeImageType(
@@ -331,7 +345,7 @@ export async function fetchProjectLogoAsset(
       if (!bytes.byteLength) continue;
       return { bytes, ...imageType };
     } catch {
-      // Try the next declared icon or social image.
+      // Try the next declared favicon candidate.
     }
   }
   return null;

@@ -27,7 +27,7 @@ type CheckoutResponse = {
 
 type ProjectPreview = {
   heading: string | null;
-  logoDataUrl: string | null;
+  faviconDataUrl: string | null;
 };
 
 async function beginCheckout(payload: Record<string, unknown>) {
@@ -191,7 +191,7 @@ export function NewListingForm({
             />
             <p className="text-[11px] leading-4 text-muted-foreground">
               We automatically fetch your website&apos;s project heading and
-              logo when the listing is created.
+              favicon when the listing is created.
             </p>
           </div>
           {previewing || preview ? (
@@ -211,7 +211,7 @@ export function NewListingForm({
                 <div className="flex items-center gap-3 rounded-lg border border-white/8 bg-background/45 p-3">
                   <StartupMark
                     name={projectName || "Project"}
-                    logoUrl={preview.logoDataUrl}
+                    logoUrl={preview.faviconDataUrl}
                     className="size-10 rounded-lg"
                   />
                   <div className="min-w-0">
