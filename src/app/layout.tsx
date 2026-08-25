@@ -5,6 +5,12 @@ import { SiteHeader } from "@/components/summitwar/site-header";
 import { SiteFooter } from "@/components/summitwar/site-footer";
 import { PresenceBeacon } from "@/components/summitwar/presence-beacon";
 import { getPublicAppUrl } from "@/lib/app-url";
+import {
+  HOME_TITLE,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  absoluteUrl,
+} from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -16,23 +22,45 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: getPublicAppUrl(),
   title: {
-    default: "SummitWar — The internet's highest startup position",
-    template: "%s · SummitWar",
+    default: HOME_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "A transparent sponsored-ranking game where startups climb a weekly virtual mountain. Every dollar adds 100 metres.",
-  applicationName: "SummitWar",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  referrer: "origin-when-cross-origin",
+  manifest: "/manifest.webmanifest",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
   openGraph: {
     type: "website",
-    siteName: "SummitWar",
-    title: "Put your startup at the highest point on the internet.",
-    description:
-      "Climb the weekly startup mountain. Rankings are sponsored, transparent, and reset every Monday.",
+    siteName: SITE_NAME,
+    title: HOME_TITLE,
+    description: SITE_DESCRIPTION,
+    url: absoluteUrl("/"),
   },
   twitter: {
     card: "summary_large_image",
-    title: "SummitWar",
-    description: "Put your startup at the highest point on the internet.",
+    title: HOME_TITLE,
+    description: SITE_DESCRIPTION,
   },
 };
 
@@ -40,14 +68,6 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#07101b",
-};
-
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "SummitWar",
-  url: "https://www.summitwar.lol",
-  description: "A transparent sponsored startup ranking game.",
 };
 
 export default function RootLayout({
@@ -66,12 +86,6 @@ export default function RootLayout({
           <main>{children}</main>
           <SiteFooter />
         </TooltipProvider>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
-          }}
-        />
       </body>
     </html>
   );

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Rules",
+export const metadata: Metadata = createPageMetadata({
+  title: "How the Startup Leaderboard Works",
   description:
-    "The complete transparent ranking, payment, and avalanche rules for SummitWar.",
-};
+    "Learn how SummitWar's transparent startup leaderboard works, including sponsored climbs, ranking tie-breaks, Stripe verification, and weekly resets.",
+  path: "/rules",
+});
 const rules = [
   [
     "One dollar, one hundred metres",

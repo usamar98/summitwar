@@ -7,11 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StartupMark } from "@/components/summitwar/startup-mark";
 import { getClosedSeasons } from "@/lib/data";
 import { formatDuration, formatMoney, formatNumber } from "@/lib/format";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Hall of Fame",
-  description: "Every weekly SummitWar champion, permanently archived.",
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "Weekly Startup Champions: Hall of Fame",
+  description:
+    "Explore every weekly SummitWar champion, winning project, final altitude, and runner-up preserved in the permanent startup leaderboard Hall of Fame.",
+  path: "/hall-of-fame",
+});
 
 export default async function HallOfFamePage() {
   const seasons = await getClosedSeasons();

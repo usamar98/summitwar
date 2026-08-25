@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { CheckCircle2 } from "lucide-react";
 import { NewListingForm } from "@/components/summitwar/climb-form";
 import { Badge } from "@/components/ui/badge";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Start climbing",
+export const metadata: Metadata = createPageMetadata({
+  title: "Submit Your Startup to the Leaderboard",
   description:
-    "List your startup and plant a sponsored flag on SummitWar from $1.",
-};
+    "Submit your startup or indie project to SummitWar's live leaderboard. Add your website, create a public profile, and begin climbing from $1.",
+  path: "/start",
+});
 export default function StartPage() {
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[.72fr_1.28fr] lg:px-10 lg:py-20">

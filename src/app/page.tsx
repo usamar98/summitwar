@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { after } from "next/server";
 import { ActivityFeed } from "@/components/summitwar/activity-feed";
 import { BaseCamp } from "@/components/summitwar/base-camp";
+import { JsonLd } from "@/components/summitwar/json-ld";
 import { InteractiveMountain } from "@/components/summitwar/mountain";
 import { LiveProof } from "@/components/summitwar/live-proof";
 import {
@@ -19,9 +22,22 @@ import {
 import { getHomeData } from "@/lib/data";
 import { formatNumber } from "@/lib/format";
 import { refreshListingMetadata } from "@/lib/listing-metadata";
+import {
+  HOME_TITLE,
+  SITE_DESCRIPTION,
+  buildHomeJsonLd,
+  createPageMetadata,
+} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 15;
+
+export const metadata: Metadata = createPageMetadata({
+  title: HOME_TITLE,
+  description: SITE_DESCRIPTION,
+  path: "/",
+  imageAlt: "SummitWar startup leaderboard on a virtual mountain",
+});
 
 export default async function HomePage() {
   const data = await getHomeData();
@@ -51,8 +67,10 @@ export default async function HomePage() {
       }
     });
   }
+  const jsonLd = buildHomeJsonLd(data.mountain);
   return (
     <>
+      <JsonLd data={jsonLd} />
       <LiveProof stats={data.stats} demo={data.demo} />
       <section
         id="mountain"
@@ -77,11 +95,11 @@ export default async function HomePage() {
               </span>
             </Badge>
             <h1 className="text-balance text-4xl font-semibold leading-[.98] tracking-[-.05em] sm:text-5xl lg:text-6xl">
-              The highest point on the internet for ambitious projects.
+              The live startup leaderboard for ambitious projects.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-balance text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
-              Plant your favicon, climb the live leaderboard, and turn every
-              metre into a moment your next visitor remembers.
+              Discover rising startups and indie products, follow transparent
+              weekly rankings, or plant your favicon and climb the mountain.
             </p>
             <div
               aria-label="Mountain takeover terms"
@@ -200,6 +218,91 @@ export default async function HomePage() {
             </div>
           </section>
         ) : null}
+        <section
+          aria-labelledby="startup-discovery-title"
+          className="rounded-2xl border border-white/8 bg-card/45 p-6 sm:p-8 lg:p-10"
+        >
+          <div className="max-w-3xl">
+            <Badge variant="outline" className="border-accent/25 text-accent">
+              Startup discovery platform
+            </Badge>
+            <h2
+              id="startup-discovery-title"
+              className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl"
+            >
+              Discover projects through a leaderboard anyone can verify.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-muted-foreground">
+              SummitWar is a live startup leaderboard for founders, makers, and
+              curious early adopters. It turns project discovery into a weekly
+              mountain race: every approved project receives a public profile,
+              every verified climb changes the ranking, and every position can
+              be checked against the same published rules.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <Card className="bg-background/35">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold">
+                  Find rising startups and tools
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Browse the mountain to uncover new SaaS products, indie tools,
+                  and founder-led projects. Each listing links to a dedicated
+                  profile with its project description, category, website, and
+                  public ranking history.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/35">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold">
+                  Follow transparent rankings
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  There are no votes, reviews, or hidden recommendation scores.
+                  SummitWar labels every placement as sponsored, records
+                  verified ranking events, and publishes the live statistics
+                  behind each season.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-background/35">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold">
+                  Submit your project and climb
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Add a project with its name, website, X handle, and checkout
+                  email. SummitWar fetches its favicon and page heading, creates
+                  the profile, and places it according to the verified
+                  whole-dollar climb.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          <p className="mt-7 max-w-4xl text-sm leading-7 text-muted-foreground">
+            Rankings reset every Monday at 00:00 UTC, while permanent project
+            profiles, lifetime history, and past champions remain available.
+            Review the{" "}
+            <Link className="text-accent hover:underline" href="/rules">
+              transparent ranking rules
+            </Link>
+            , inspect the{" "}
+            <Link className="text-accent hover:underline" href="/activity">
+              verified activity ledger
+            </Link>
+            , compare{" "}
+            <Link className="text-accent hover:underline" href="/stats">
+              live startup statistics
+            </Link>
+            , or{" "}
+            <Link className="text-primary hover:underline" href="/start">
+              submit your startup to the leaderboard
+            </Link>
+            .
+          </p>
+        </section>
         <BaseCamp startups={data.baseCamp} />
       </div>
     </>

@@ -11,6 +11,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { RankHistoryChart } from "@/components/summitwar/charts";
+import { JsonLd } from "@/components/summitwar/json-ld";
 import {
   ProfileTracker,
   ShareButton,
@@ -23,26 +24,39 @@ import { Separator } from "@/components/ui/separator";
 import { getHomeData, getStartupBySlug } from "@/lib/data";
 import { amountToOvertakeCents } from "@/lib/domain/ranking";
 import { formatDuration, formatMoney, formatNumber } from "@/lib/format";
+import {
+  buildStartupJsonLd,
+  createPageMetadata,
+  truncateSearchDescription,
+} from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const startup = await getStartupBySlug(slug);
-  if (!startup) return { title: "Startup not found" };
-  return {
-    title: startup.name,
-    description: startup.tagline,
-    openGraph: {
-      title: `${startup.name} is #${startup.currentRank ?? "Base Camp"} on SummitWar`,
-      description: startup.tagline,
-      images: [`/og/rank/${startup.slug}`],
-    },
-    twitter: {
-      card: "summary_large_image",
-      images: [`/og/rank/${startup.slug}`],
-    },
-  };
+  if (!startup)
+    return createPageMetadata({
+      title: "Startup Not Found",
+      description: "This SummitWar startup profile is no longer available.",
+      path: `/startup/${slug}`,
+      noIndex: true,
+    });
+
+  const position = startup.currentRank
+    ? `ranked #${startup.currentRank}`
+    : "listed in Base Camp";
+  const description = truncateSearchDescription(
+    `Discover ${startup.name}, ${position} on SummitWar's live startup leaderboard. ${startup.tagline} View its profile, ranking history, and verified climb activity.`,
+  );
+
+  return createPageMetadata({
+    title: `${startup.name}: Startup Profile & Ranking`,
+    description,
+    path: `/startup/${startup.slug}`,
+    imagePath: `/og/rank/${startup.slug}`,
+    imageAlt: `${startup.name} ranking card on SummitWar`,
+  });
 }
 
 export default async function StartupPage({ params }: Props) {
@@ -52,6 +66,7 @@ export default async function StartupPage({ params }: Props) {
     getHomeData(),
   ]);
   if (!startup) notFound();
+  const jsonLd = buildStartupJsonLd(startup);
   const ordered = home.mountain;
   const index = ordered.findIndex((item) => item.id === startup.id);
   const target = index > 0 ? ordered[index - 1] : null;
@@ -66,7 +81,18 @@ export default async function StartupPage({ params }: Props) {
   ].filter(Boolean) as string[];
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-10 lg:py-18">
+      <JsonLd data={jsonLd} />
       <ProfileTracker listingId={startup.id} />
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-7 flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+      >
+        <Link className="hover:text-foreground hover:underline" href="/">
+          Startup leaderboard
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{startup.name}</span>
+      </nav>
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
         <div className="flex gap-5">
           <StartupMark

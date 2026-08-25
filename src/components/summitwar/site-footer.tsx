@@ -19,11 +19,17 @@ export function SiteFooter() {
           <Link href="/rules" className="hover:text-foreground">
             Rules
           </Link>
+          <Link href="/activity" className="hover:text-foreground">
+            Activity
+          </Link>
           <Link href="/stats" className="hover:text-foreground">
             Stats
           </Link>
           <Link href="/hall-of-fame" className="hover:text-foreground">
             Hall of Fame
+          </Link>
+          <Link href="/start" className="hover:text-foreground">
+            Submit a project
           </Link>
           <Link href="/login" className="hover:text-foreground">
             Owner login

@@ -9,8 +9,34 @@ test("renders the live homepage without browser errors", async ({ page }) => {
 
   const response = await page.goto("/");
   expect(response?.ok()).toBeTruthy();
+  await expect(page).toHaveTitle(
+    "Startup Leaderboard & Project Discovery | SummitWar",
+  );
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    /^https:\/\/www\.summitwar\.lol\/?$/,
+  );
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    /live startup leaderboard/i,
+  );
+  const jsonLdText = await page
+    .locator('script[type="application/ld+json"]')
+    .textContent();
+  expect(jsonLdText).toBeTruthy();
+  const jsonLd = JSON.parse(jsonLdText ?? "{}") as {
+    "@graph": Array<{ "@type": string }>;
+  };
+  expect(jsonLd["@graph"].map((entry) => entry["@type"])).toEqual([
+    "Organization",
+    "WebSite",
+    "SoftwareApplication",
+    "ItemList",
+  ]);
   await expect(
-    page.getByRole("heading", { name: /highest point on the internet/i }),
+    page.getByRole("heading", {
+      name: /live startup leaderboard for ambitious projects/i,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("img", { name: /weekly startup mountain/i }),

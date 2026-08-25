@@ -3,11 +3,15 @@ import { ExistingClimbForm } from "@/components/summitwar/climb-form";
 import { Badge } from "@/components/ui/badge";
 import { getHomeData } from "@/lib/data";
 import { amountToOvertakeCents } from "@/lib/domain/ranking";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Climb",
-  description: "Choose a transparent sponsored climb for your startup.",
-};
+export const metadata: Metadata = createPageMetadata({
+  title: "Complete a Sponsored Project Climb",
+  description:
+    "Complete a secure sponsored climb for an existing SummitWar project using a live, transparent ranking quote.",
+  path: "/checkout",
+  noIndex: true,
+});
 export default async function CheckoutPage({
   searchParams,
 }: {

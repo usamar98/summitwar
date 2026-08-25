@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import { ActivityFeed } from "@/components/summitwar/activity-feed";
 import { Badge } from "@/components/ui/badge";
 import { getHomeData } from "@/lib/data";
+import { createPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Activity",
+export const metadata: Metadata = createPageMetadata({
+  title: "Live Startup Activity & Ranking Changes",
   description:
-    "The immutable live ledger of SummitWar climbs and summit takeovers.",
-};
+    "Follow verified startup climbs, summit takeovers, and ranking changes in SummitWar's transparent live activity ledger as projects compete.",
+  path: "/activity",
+});
 export default async function ActivityPage() {
   const { events, demo } = await getHomeData();
   return (

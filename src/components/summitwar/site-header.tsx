@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sheet";
 
 const links = [
-  ["Mountain", "/#mountain"],
+  ["Leaderboard", "/#mountain"],
   ["Activity", "/activity"],
   ["Hall of Fame", "/hall-of-fame"],
   ["Live Stats", "/stats"],
@@ -39,7 +39,7 @@ export function SiteHeader() {
             asChild
             className="h-9 bg-primary px-4 text-primary-foreground shadow-[0_0_28px_-10px_var(--primary)] hover:bg-primary/90"
           >
-            <Link href="/start">Start climbing</Link>
+            <Link href="/start">Submit project</Link>
           </Button>
           <Sheet>
             <SheetTrigger asChild>

@@ -14,14 +14,16 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getHomeData } from "@/lib/data";
 import { formatMoney, formatNumber } from "@/lib/format";
+import { createPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Live Stats",
+export const metadata: Metadata = createPageMetadata({
+  title: "Live Startup Leaderboard Statistics",
   description:
-    "Transparent transaction revenue, climbs, visitors, and startup click statistics for SummitWar.",
-};
+    "Explore live SummitWar statistics for verified startup climbs, sponsored revenue, project categories, visitors, profile views, and outbound clicks.",
+  path: "/stats",
+});
 
 export default async function StatsPage() {
   const { stats, mountain, demo } = await getHomeData();
