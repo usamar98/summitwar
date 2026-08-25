@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   Crown,
+  Flag,
   MountainSnow,
   RotateCcw,
   TrendingDown,
@@ -48,46 +49,80 @@ function ProjectSectorCard({
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(startup.createdAt));
+  const rankLabel = String(rank).padStart(2, "0");
 
   return (
     <article
-      className={`relative overflow-hidden rounded-xl border p-3.5 ${
-        rank === 1
-          ? "border-primary/30 bg-gradient-to-br from-primary/10 to-transparent"
-          : "border-white/9 bg-white/[.025]"
+      className={`relative overflow-hidden rounded-[20px] border bg-[#0d0e12]/95 p-4 shadow-[0_24px_60px_-42px_rgba(0,0,0,.95)] ${
+        rank === 1 ? "border-primary/35" : "border-white/12"
       }`}
     >
+      <div
+        aria-hidden="true"
+        className={`absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t ${
+          rank === 1 ? "from-primary/[.055]" : "from-accent/[.035]"
+        } to-transparent`}
+      />
       <div className="flex items-center justify-between gap-3">
-        <div className="font-mono text-[9px] font-semibold uppercase tracking-[.18em] text-muted-foreground">
-          Mountain sector #{rank}
+        <div
+          className={`font-mono text-[10px] font-semibold uppercase tracking-[.2em] ${
+            rank === 1 ? "text-primary" : "text-accent"
+          }`}
+        >
+          Summit sector {rankLabel}
         </div>
-        <span className="font-mono text-[10px] text-primary">#{rank}</span>
+        <span
+          aria-hidden="true"
+          className={`size-4 rounded-[5px] border shadow-[inset_0_0_0_1px_rgba(255,255,255,.18)] ${
+            rank === 1
+              ? "border-primary/80 bg-primary"
+              : "border-accent/70 bg-accent"
+          }`}
+        />
       </div>
-      <div className="mt-3 rounded-xl border border-white/10 bg-background/45 p-3">
-        <div className="mb-2 text-[9px] text-muted-foreground">
-          Held by this project
+      <h3 className="relative mt-2 truncate text-xl font-semibold tracking-tight">
+        {startup.name}
+      </h3>
+      <p className="relative mt-0.5 font-mono text-[10px] text-muted-foreground">
+        Rank #{rank} on the mountain · current sector
+      </p>
+
+      <div className="relative mt-4 rounded-xl border border-white/12 bg-white/[.035] p-3">
+        <div className="mb-2.5 text-[10px] text-muted-foreground">
+          Currently held by
         </div>
         <Link
           href={`/startup/${startup.slug}`}
-          className="group flex min-w-0 items-center gap-3"
+          className="group flex min-w-0 items-start gap-3"
+          aria-label={`View ${startup.name} project profile`}
         >
           <StartupMark
             name={startup.name}
             logoUrl={startup.logoUrl}
-            className="size-11 rounded-lg"
+            className="mt-0.5 size-12 rounded-lg"
           />
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold tracking-tight">
+            <div className="truncate text-sm font-semibold tracking-tight">
               {startup.name}
-            </h3>
-            <p className="mt-0.5 line-clamp-2 text-[10px] leading-4 text-muted-foreground">
+            </div>
+            <p className="mt-1 line-clamp-3 text-[11px] leading-[1.55] text-muted-foreground">
               {startup.tagline}
             </p>
           </div>
-          <ArrowUpRight className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+          <ArrowUpRight className="mt-1 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
         </Link>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-white/8 pt-2.5 text-[9px] text-muted-foreground">
+          <span>Current holder</span>
+          <time dateTime={startup.createdAt}>Since {submitted}</time>
+        </div>
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+
+      <p className="relative mt-4 text-[11px] leading-[1.65] text-muted-foreground">
+        Challenge with your project. Earn a stronger position and take over
+        sector #{rank}.
+      </p>
+
+      <div className="relative mt-3 flex flex-wrap items-center justify-between gap-2">
         <Badge variant="outline" className={status.className}>
           <StatusIcon className="size-3" /> {status.label}
         </Badge>
@@ -104,6 +139,16 @@ function ProjectSectorCard({
           </time>
         )}
       </div>
+      <Link
+        href="/start"
+        className={`relative mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 text-center text-xs font-semibold transition-[filter,transform] hover:brightness-110 active:translate-y-px ${
+          rank === 1
+            ? "bg-primary text-primary-foreground"
+            : "bg-accent text-accent-foreground"
+        }`}
+      >
+        <Flag className="size-3.5" /> Challenge sector #{rank} with your project
+      </Link>
     </article>
   );
 }
@@ -115,11 +160,8 @@ export function SummitLeaders({ startups }: { startups: Startup[] }) {
     null,
   );
   return (
-    <aside
-      aria-label="Top eight projects"
-      className="rounded-2xl border border-white/8 bg-card/55 p-3 shadow-[0_28px_70px_-52px_rgba(255,205,95,.7)] backdrop-blur"
-    >
-      <div className="mb-3 flex items-end justify-between px-1">
+    <aside aria-label="Top eight projects" className="min-w-0">
+      <div className="mb-3 flex items-end justify-between px-1.5">
         <div>
           <div className="text-[10px] font-medium uppercase tracking-[.18em] text-primary">
             Project strongholds
@@ -131,7 +173,7 @@ export function SummitLeaders({ startups }: { startups: Startup[] }) {
         </span>
       </div>
       {startups.length ? (
-        <div className="grid max-h-[590px] gap-2 overflow-y-auto pr-1">
+        <div className="grid max-h-[660px] gap-3 overflow-y-auto pr-1.5">
           {startups.map((startup) => (
             <ProjectSectorCard
               key={startup.id}

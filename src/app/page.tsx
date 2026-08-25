@@ -103,7 +103,7 @@ export default async function HomePage() {
               </Badge>
             </div>
           </div>
-          <div className="grid items-start gap-4 xl:grid-cols-[236px_minmax(0,1fr)_286px]">
+          <div className="grid items-start gap-4 xl:grid-cols-[236px_minmax(0,1fr)_340px]">
             <div className="order-3 xl:order-1">
               <MountainClimbers startups={data.mountain.slice(8)} />
             </div>

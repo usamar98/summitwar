@@ -21,6 +21,12 @@ test("renders the live homepage without browser errors", async ({ page }) => {
     page.getByText("Previous winner · Reclaim the Summit"),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ranks 1–8" })).toBeVisible();
+  await expect(
+    page.getByRole("link", {
+      name: "Challenge sector #1 with your project",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Currently held by").first()).toBeVisible();
   await expect(page.getByText("Open camp")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^Rank / })).toHaveCount(50);
   await expect(
