@@ -7,6 +7,11 @@ export const HOME_PAGE_TITLE = "Startup Leaderboard & Project Discovery";
 export const HOME_TITLE = `${HOME_PAGE_TITLE} | ${SITE_NAME}`;
 export const SITE_DESCRIPTION =
   "Discover ambitious startups and indie products on SummitWar's live startup leaderboard. Explore transparent rankings or submit your project and climb from $1.";
+export const DEFAULT_GOOGLE_SITE_VERIFICATION =
+  "nPnAOOkPg9Pa9DfhfooIu328_owzvfJlP1VIK52n3jY";
+export const GOOGLE_SITE_VERIFICATION =
+  process.env.GOOGLE_SITE_VERIFICATION?.trim() ||
+  DEFAULT_GOOGLE_SITE_VERIFICATION;
 
 const DEFAULT_SOCIAL_IMAGE = "/opengraph-image";
 

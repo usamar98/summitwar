@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/summitwar/site-footer";
 import { PresenceBeacon } from "@/components/summitwar/presence-beacon";
 import { getPublicAppUrl } from "@/lib/app-url";
 import {
+  GOOGLE_SITE_VERIFICATION,
   HOME_TITLE,
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -47,9 +48,7 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  verification: process.env.GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  verification: { google: GOOGLE_SITE_VERIFICATION },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,

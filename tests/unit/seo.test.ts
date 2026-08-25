@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { demoStartups } from "@/lib/demo-data";
 import {
+  DEFAULT_GOOGLE_SITE_VERIFICATION,
   HOME_TITLE,
   SITE_DESCRIPTION,
   absoluteUrl,
@@ -64,6 +65,9 @@ describe("SEO helpers", () => {
   });
 
   it("keeps search snippets and titles within useful lengths", () => {
+    expect(DEFAULT_GOOGLE_SITE_VERIFICATION).toBe(
+      "nPnAOOkPg9Pa9DfhfooIu328_owzvfJlP1VIK52n3jY",
+    );
     expect(HOME_TITLE.length).toBeGreaterThanOrEqual(30);
     expect(HOME_TITLE.length).toBeLessThanOrEqual(60);
     expect(SITE_DESCRIPTION.length).toBeGreaterThanOrEqual(120);

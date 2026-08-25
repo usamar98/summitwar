@@ -20,6 +20,9 @@ test("renders the live homepage without browser errors", async ({ page }) => {
     "content",
     /live startup leaderboard/i,
   );
+  await expect(
+    page.locator('meta[name="google-site-verification"]'),
+  ).toHaveAttribute("content", "nPnAOOkPg9Pa9DfhfooIu328_owzvfJlP1VIK52n3jY");
   const jsonLdText = await page
     .locator('script[type="application/ld+json"]')
     .textContent();
