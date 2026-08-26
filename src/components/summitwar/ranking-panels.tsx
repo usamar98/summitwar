@@ -145,7 +145,11 @@ export function SummitLeaders({ startups }: { startups: Startup[] }) {
       a.firstReachedAt.localeCompare(b.firstReachedAt),
   )[0];
   return (
-    <aside aria-label="Strongest project" className="min-w-0">
+    <aside
+      id="summit-holder"
+      aria-label="Strongest project"
+      className="min-w-0 scroll-mt-24"
+    >
       <div className="mb-3 px-1.5">
         <div>
           <div className="text-[10px] font-medium uppercase tracking-[.18em] text-primary">

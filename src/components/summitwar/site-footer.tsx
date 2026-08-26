@@ -16,6 +16,12 @@ export function SiteFooter() {
           className="flex flex-wrap gap-x-6 gap-y-2"
           aria-label="Footer navigation"
         >
+          <Link href="/categories" className="hover:text-foreground">
+            Categories
+          </Link>
+          <Link href="/about" className="hover:text-foreground">
+            About
+          </Link>
           <Link href="/rules" className="hover:text-foreground">
             Rules
           </Link>

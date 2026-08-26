@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StartupMark } from "@/components/summitwar/startup-mark";
+import { categorySlug } from "@/lib/categories";
 import { formatMoney, formatNumber } from "@/lib/format";
 import type { RankingEvent, Startup } from "@/lib/types";
 
@@ -225,12 +226,14 @@ export function BaseCamp({
                     <Badge variant="outline" className={status.className}>
                       <StatusIcon className="size-3" /> {status.label}
                     </Badge>
-                    <Badge
-                      variant="outline"
-                      className="border-white/10 text-[9px] text-muted-foreground"
-                    >
-                      {startup.category}
-                    </Badge>
+                    <Link href={`/category/${categorySlug(startup.category)}`}>
+                      <Badge
+                        variant="outline"
+                        className="border-white/10 text-[9px] text-muted-foreground hover:border-accent/30 hover:text-accent"
+                      >
+                        {startup.category}
+                      </Badge>
+                    </Link>
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-white/8 bg-black/20 p-3 text-[10px]">
                     <div>

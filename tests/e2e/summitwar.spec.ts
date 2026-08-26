@@ -42,6 +42,12 @@ test("renders the live homepage without browser errors", async ({ page }) => {
     }),
   ).toBeVisible();
   await expect(
+    page.getByRole("link", { name: "Plant your flag from $1" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Browse project categories/ }),
+  ).toBeVisible();
+  await expect(
     page.getByRole("img", { name: /weekly startup mountain/i }),
   ).toBeVisible();
   await expect(page.getByText(/Captured the Summit ·/)).toBeVisible();
@@ -94,6 +100,60 @@ test("renders the live homepage without browser errors", async ({ page }) => {
   ).toBeVisible();
   await projectSearch.clear();
   expect(browserErrors).toEqual([]);
+});
+
+test("publishes useful category discovery pages", async ({ page }) => {
+  await page.goto("/categories");
+  await expect(page).toHaveTitle(
+    "Startup Categories & Indie Project Directory | SummitWar",
+  );
+  await expect(
+    page.getByRole("heading", {
+      name: "Browse startups and indie products by category.",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("6", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Explore category/ }).first(),
+  ).toBeVisible();
+
+  await page.goto("/category/ai");
+  await expect(page).toHaveTitle(
+    "Best AI Startups & Indie Projects | SummitWar",
+  );
+  await expect(
+    page.getByRole("heading", { name: "AI startups and indie projects" }),
+  ).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute(
+    "content",
+    /noindex/,
+  );
+  await expect(page.getByText("Sponsored-placement notice:")).toBeVisible();
+});
+
+test("publishes trust and AI-readable platform documentation", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/about");
+  await expect(page).toHaveTitle(
+    "About SummitWar's Transparent Startup Discovery Platform | SummitWar",
+  );
+  await expect(
+    page.getByRole("heading", {
+      name: /Startup discovery should be exciting/i,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Position measures verified sponsored hold/),
+  ).toBeVisible();
+
+  const response = await request.get("/llms.txt");
+  expect(response.ok()).toBeTruthy();
+  expect(response.headers()["content-type"]).toContain("text/plain");
+  const text = await response.text();
+  expect(text).toContain("transparent sponsored startup leaderboard");
+  expect(text).toContain("/categories");
 });
 
 test("creates a listing through the development payment adapter", async ({

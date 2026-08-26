@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getPublicAppOrigin } from "@/lib/app-url";
+import type { CategoryGroup } from "@/lib/categories";
 import type { Startup } from "@/lib/types";
 
 export const SITE_NAME = "SummitWar";
@@ -202,6 +203,124 @@ export function buildStartupJsonLd(startup: Startup) {
           description: startup.description,
           url: startup.website,
         },
+      },
+    ],
+  };
+}
+
+function projectListItems(startups: readonly Startup[]) {
+  return startups.map((startup, index) => {
+    const profileUrl = absoluteUrl(`/startup/${startup.slug}`);
+    return {
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "WebPage",
+        "@id": profileUrl,
+        name: startup.name,
+        description: startup.tagline,
+        url: profileUrl,
+      },
+    };
+  });
+}
+
+export function buildCategoriesJsonLd(groups: readonly CategoryGroup[]) {
+  const page = absoluteUrl("/categories");
+  const home = absoluteUrl("/");
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Startup leaderboard",
+            item: home,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Project categories",
+            item: page,
+          },
+        ],
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": page,
+        name: "Startup and indie project categories",
+        description:
+          "Browse approved startups and indie products by category on SummitWar.",
+        url: page,
+        isPartOf: { "@id": `${home}#website` },
+        mainEntity: {
+          "@type": "ItemList",
+          numberOfItems: groups.length,
+          itemListElement: groups.map((group, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: group.name,
+            url: absoluteUrl(`/category/${group.slug}`),
+          })),
+        },
+      },
+    ],
+  };
+}
+
+export function buildCategoryJsonLd(
+  group: CategoryGroup,
+  startups: readonly Startup[],
+) {
+  const page = absoluteUrl(`/category/${group.slug}`);
+  const categories = absoluteUrl("/categories");
+  const home = absoluteUrl("/");
+  const listId = `${page}#projects`;
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Startup leaderboard",
+            item: home,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Project categories",
+            item: categories,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: group.name,
+            item: page,
+          },
+        ],
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": page,
+        name: `${group.name} startups and indie projects`,
+        description: `Discover ${group.name} projects competing on SummitWar's transparent sponsored leaderboard.`,
+        url: page,
+        isPartOf: { "@id": `${home}#website` },
+        mainEntity: { "@id": listId },
+      },
+      {
+        "@type": "ItemList",
+        "@id": listId,
+        name: `${group.name} project leaderboard`,
+        numberOfItems: startups.length,
+        itemListOrder: "https://schema.org/ItemListOrderAscending",
+        itemListElement: projectListItems(startups),
       },
     ],
   };

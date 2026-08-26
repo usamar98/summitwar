@@ -11,12 +11,18 @@ import {
   SummitLeaders,
 } from "@/components/summitwar/ranking-panels";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  ArrowUpRight,
   Crown,
   Eye,
+  Flag,
+  Link2,
   MountainSnow,
   RotateCcw,
+  ShieldCheck,
+  Swords,
   TrendingDown,
 } from "lucide-react";
 import { getHomeData } from "@/lib/data";
@@ -120,9 +126,51 @@ export default async function HomePage() {
               Discover rising startups and indie products, follow transparent
               weekly rankings, or plant your favicon and climb the mountain.
             </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="h-11 rounded-full px-6 shadow-[0_0_28px_rgba(255,184,0,.12)]"
+              >
+                <Link href="#summit-holder">
+                  <Flag className="size-4" /> Plant your flag from $1
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-11 rounded-full border-white/12 bg-white/[.025] px-6"
+              >
+                <Link href="/categories">
+                  Browse project categories <ArrowUpRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+            <div
+              aria-label="How SummitWar promotion works"
+              className="mx-auto mt-5 grid max-w-3xl gap-2 text-left text-[11px] text-muted-foreground sm:grid-cols-2 lg:grid-cols-4"
+            >
+              <span className="flex items-center gap-2 rounded-lg border border-white/8 bg-black/15 px-3 py-2">
+                <Flag className="size-3.5 shrink-0 text-primary" /> Your favicon
+                becomes your flag
+              </span>
+              <span className="flex items-center gap-2 rounded-lg border border-white/8 bg-black/15 px-3 py-2">
+                <Link2 className="size-3.5 shrink-0 text-primary" /> Every flag
+                links to its project
+              </span>
+              <span className="flex items-center gap-2 rounded-lg border border-white/8 bg-black/15 px-3 py-2">
+                <Swords className="size-3.5 shrink-0 text-primary" /> Rivals can
+                knock down a hold
+              </span>
+              <span className="flex items-center gap-2 rounded-lg border border-white/8 bg-black/15 px-3 py-2">
+                <ShieldCheck className="size-3.5 shrink-0 text-primary" /> Only
+                verified payments move rank
+              </span>
+            </div>
             <div
               aria-label="Mountain takeover terms"
-              className="mt-6 flex flex-wrap justify-center gap-2"
+              className="mt-5 flex flex-wrap justify-center gap-2"
             >
               <Badge
                 variant="outline"

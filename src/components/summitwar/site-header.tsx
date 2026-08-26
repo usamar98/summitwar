@@ -13,10 +13,12 @@ import {
 
 const links = [
   ["Leaderboard", "/#mountain"],
+  ["Categories", "/categories"],
   ["Activity", "/activity"],
   ["Hall of Fame", "/hall-of-fame"],
   ["Live Stats", "/stats"],
   ["Rules", "/rules"],
+  ["About", "/about"],
 ] as const;
 
 export function SiteHeader() {
@@ -25,7 +27,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <Brand />
         <nav
-          className="hidden items-center gap-1 md:flex"
+          className="hidden items-center gap-0.5 lg:flex"
           aria-label="Primary navigation"
         >
           {links.map(([label, href]) => (
@@ -46,7 +48,7 @@ export function SiteHeader() {
               <Button
                 size="icon"
                 variant="outline"
-                className="md:hidden"
+                className="lg:hidden"
                 aria-label="Open navigation"
               >
                 <Menu />
