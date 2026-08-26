@@ -35,8 +35,8 @@ const rules = [
     "All placements are paid sponsorships, not votes, reviews, or editorial recommendations. Payments are normally non-refundable, and rankings can change at any time.",
   ],
   [
-    "Fifty flags on the mountain",
-    "Only the top 50 approved startups appear on the mountain. Every other approved listing remains searchable in Base Camp.",
+    "Twenty flags across three peaks",
+    "Only the top 20 approved startups appear across the three mountain peaks. Every other approved listing remains searchable in Base Camp.",
   ],
   [
     "Fair play",

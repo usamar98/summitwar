@@ -41,6 +41,7 @@ test("renders the live homepage without browser errors", async ({ page }) => {
       name: /live startup leaderboard for ambitious projects/i,
     }),
   ).toBeVisible();
+  await expect(page.getByText("20 on the mountain")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Plant your flag from $1" }),
   ).toBeVisible();
@@ -50,6 +51,26 @@ test("renders the live homepage without browser errors", async ({ page }) => {
   await expect(
     page.getByRole("img", { name: /weekly startup mountain/i }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Rank 1,/ })).toHaveAttribute(
+    "transform",
+    "translate(500 126)",
+  );
+  await expect(page.getByRole("button", { name: /^Rank 2,/ })).toHaveAttribute(
+    "transform",
+    "translate(816 190)",
+  );
+  await expect(page.getByRole("button", { name: /^Rank 3,/ })).toHaveAttribute(
+    "transform",
+    "translate(184 282)",
+  );
+  await expect(page.getByRole("button", { name: /^Rank 4,/ })).toHaveAttribute(
+    "transform",
+    "translate(686 337)",
+  );
+  await expect(page.getByRole("button", { name: /^Rank 5,/ })).toHaveAttribute(
+    "transform",
+    "translate(334 389)",
+  );
   await expect(page.getByText(/Captured the Summit ·/)).toBeVisible();
   await expect(page.getByText(/Knocked Down ·/)).toBeVisible();
   await expect(page.getByText(/Reclaimed the Summit ·/)).toBeVisible();
@@ -78,7 +99,7 @@ test("renders the live homepage without browser errors", async ({ page }) => {
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByText("Open camp")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /^Rank / })).toHaveCount(50);
+  await expect(page.getByRole("button", { name: /^Rank / })).toHaveCount(20);
   await expect(
     page.locator(
       "[data-nextjs-dialog], .vite-error-overlay, #webpack-dev-server-client-overlay",
@@ -251,11 +272,21 @@ test("documents the weekly avalanche reset", async ({ page }) => {
   await page.goto("/rules");
   await expect(page.getByText("Monday is avalanche day")).toBeVisible();
   await expect(page.getByText(/Monday at 00:00 UTC/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Twenty flags across three peaks" }),
+  ).toBeVisible();
 });
 test("supports mobile flag tapping", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByRole("button", { name: /Rank 1, Northstar AI/ }).click();
+  const summitFlag = page.getByRole("button", {
+    name: /Rank 1, Northstar AI/,
+  });
+  await summitFlag.evaluate((element) =>
+    element.scrollIntoView({ block: "center", inline: "center" }),
+  );
+  await expect(summitFlag).toBeInViewport();
+  await summitFlag.click();
   await expect(page.getByText("Current season climb")).toBeVisible();
 });
 test("realtime route returns the current mountain payload", async ({
@@ -264,5 +295,5 @@ test("realtime route returns the current mountain payload", async ({
   const response = await request.get("/api/public/mountain");
   expect(response.ok()).toBeTruthy();
   const body = await response.json();
-  expect(body.mountain).toHaveLength(50);
+  expect(body.mountain).toHaveLength(20);
 });

@@ -110,9 +110,7 @@ export default async function HomePage() {
               className="mb-5 h-auto gap-2 rounded-full border-primary/25 bg-primary/7 px-3.5 py-1.5 text-[10px] font-medium uppercase tracking-[.12em] text-muted-foreground"
             >
               <MountainSnow className="size-3.5 text-primary" />
-              <span>
-                {formatNumber(data.stats.startupsCompeting)} on the mountain
-              </span>
+              <span>{formatNumber(data.mountain.length)} on the mountain</span>
               <span className="size-1 rounded-full bg-white/20" />
               <Eye className="size-3 text-accent" />
               <span>

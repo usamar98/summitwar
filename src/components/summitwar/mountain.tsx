@@ -21,17 +21,36 @@ import {
 } from "@/components/ui/sheet";
 import { StartupMark } from "@/components/summitwar/startup-mark";
 import { createClient, hasPublicSupabaseEnv } from "@/lib/supabase/client";
+import { MOUNTAIN_CAPACITY, rankListings } from "@/lib/domain/ranking";
 import { formatMoney, formatNumber } from "@/lib/format";
 import type { Startup } from "@/lib/types";
 
-const camps = Array.from({ length: 50 }, (_, index) => {
-  const level = index / 49;
-  const y = 104 + level * 492;
-  const width = 50 + level * 370;
-  const direction = index % 2 === 0 ? -1 : 1;
-  const lane = 0.25 + ((index * 17) % 60) / 100;
-  return { x: 500 + direction * width * lane, y };
-});
+const camps = [
+  { x: 500, y: 126 }, // Tall middle summit
+  { x: 816, y: 190 }, // Right summit
+  { x: 184, y: 282 }, // Lower left summit
+  { x: 686, y: 337 }, // Middle/right saddle
+  { x: 334, y: 389 }, // Left/middle saddle
+  { x: 446, y: 194 },
+  { x: 558, y: 201 },
+  { x: 884, y: 296 },
+  { x: 91, y: 382 },
+  { x: 405, y: 272 },
+  { x: 610, y: 282 },
+  { x: 760, y: 260 },
+  { x: 263, y: 336 },
+  { x: 380, y: 365 },
+  { x: 630, y: 409 },
+  { x: 951, y: 464 },
+  { x: 45, y: 506 },
+  { x: 253, y: 514 },
+  { x: 756, y: 520 },
+  { x: 500, y: 584 },
+] as const;
+
+function rankByVerifiedHold(startups: readonly Startup[]) {
+  return rankListings(startups).slice(0, MOUNTAIN_CAPACITY);
+}
 
 function initials(name: string) {
   return name
@@ -48,10 +67,19 @@ export function InteractiveMountain({
   initialStartups: Startup[];
 }) {
   const router = useRouter();
-  const [startups, setStartups] = useState(initialStartups);
+  const [startups, setStartups] = useState(() =>
+    rankByVerifiedHold(initialStartups),
+  );
   const [selected, setSelected] = useState<Startup | null>(null);
   const [avalanche, setAvalanche] = useState(false);
-  const summitId = useRef(initialStartups[0]?.id);
+  const summitId = useRef(rankByVerifiedHold(initialStartups)[0]?.id);
+  const mountainViewport = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const viewport = mountainViewport.current;
+    if (!viewport || viewport.scrollWidth <= viewport.clientWidth) return;
+    viewport.scrollLeft = (viewport.scrollWidth - viewport.clientWidth) / 2;
+  }, []);
 
   useEffect(() => {
     if (!hasPublicSupabaseEnv()) return;
@@ -67,12 +95,13 @@ export function InteractiveMountain({
           });
           if (!response.ok) return;
           const payload = (await response.json()) as { mountain: Startup[] };
-          if (payload.mountain[0]?.id !== summitId.current) {
+          const ranked = rankByVerifiedHold(payload.mountain);
+          if (ranked[0]?.id !== summitId.current) {
             setAvalanche(true);
             window.setTimeout(() => setAvalanche(false), 1200);
           }
-          summitId.current = payload.mountain[0]?.id;
-          setStartups(payload.mountain);
+          summitId.current = ranked[0]?.id;
+          setStartups(ranked);
           router.refresh();
         },
       )
@@ -85,8 +114,9 @@ export function InteractiveMountain({
   return (
     <>
       <div
+        ref={mountainViewport}
         className="relative overflow-x-auto rounded-2xl border border-white/8 bg-[#06101c] shadow-[0_40px_100px_-55px_rgba(84,190,187,.55)]"
-        aria-label="Interactive top 50 startup mountain"
+        aria-label="Interactive top 20 startup mountain across three peaks"
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-primary/8 to-transparent" />
         {avalanche ? (
@@ -103,8 +133,10 @@ export function InteractiveMountain({
         >
           <title id="mountain-title">SummitWar weekly startup mountain</title>
           <desc id="mountain-description">
-            The fifty highest sponsored project placements, ordered from the
-            golden summit to base camp, with each project favicon on its flag.
+            The twenty highest sponsored project placements span three linked
+            peaks. The strongest project holds the tall middle summit, followed
+            by the right and left summits, with every position following the
+            mountain borders.
           </desc>
           <defs>
             <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
@@ -115,6 +147,15 @@ export function InteractiveMountain({
               <stop stopColor="#263d4a" />
               <stop offset=".52" stopColor="#102532" />
               <stop offset="1" stopColor="#091824" />
+            </linearGradient>
+            <linearGradient id="leftRock" x1="0" y1="0" x2="1" y2="1">
+              <stop stopColor="#1c3845" />
+              <stop offset="1" stopColor="#081722" />
+            </linearGradient>
+            <linearGradient id="rightRock" x1="1" y1="0" x2="0" y2="1">
+              <stop stopColor="#31505a" />
+              <stop offset=".55" stopColor="#122936" />
+              <stop offset="1" stopColor="#081722" />
             </linearGradient>
             <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1">
               <stop stopColor="#f5f7ed" />
@@ -131,10 +172,28 @@ export function InteractiveMountain({
           <rect width="1000" height="660" fill="url(#sky)" />
           <ellipse
             cx="500"
-            cy="95"
+            cy="96"
             rx="150"
             ry="130"
             fill="url(#summitGlow)"
+            filter="url(#glow)"
+          />
+          <ellipse
+            cx="816"
+            cy="166"
+            rx="92"
+            ry="82"
+            fill="url(#summitGlow)"
+            opacity=".24"
+            filter="url(#glow)"
+          />
+          <ellipse
+            cx="184"
+            cy="258"
+            rx="70"
+            ry="62"
+            fill="url(#summitGlow)"
+            opacity=".12"
             filter="url(#glow)"
           />
           <path
@@ -153,18 +212,75 @@ export function InteractiveMountain({
             />
           ))}
           <path
-            d="M55 635 L500 74 L955 635 Z"
-            fill="url(#rock)"
-            stroke="#496270"
+            d="M-90 635 L184 230 L468 635 Z"
+            fill="url(#leftRock)"
+            stroke="#38535e"
             strokeWidth="2"
+          />
+          <path
+            d="M184 230 L137 300 L175 284 L198 310 L226 283 L262 338 Z"
+            fill="url(#snow)"
+            opacity=".72"
+          />
+          <path
+            d="M-90 635 L184 230 L132 635 Z"
+            fill="#a6c1c5"
+            opacity=".045"
+          />
+          <path d="M184 230 L468 635 L292 635 Z" fill="#000" opacity=".15" />
+
+          <path
+            d="M580 635 L816 145 L1095 635 Z"
+            fill="url(#rightRock)"
+            stroke="#4d6972"
+            strokeWidth="2"
+          />
+          <path
+            d="M816 145 L759 264 L799 237 L829 273 L862 226 L916 321 Z"
+            fill="url(#snow)"
+            opacity=".88"
+          />
+          <path
+            d="M580 635 L816 145 L742 635 Z"
+            fill="#b5c9c9"
+            opacity=".055"
+          />
+          <path d="M816 145 L1095 635 L890 635 Z" fill="#000" opacity=".2" />
+
+          <path
+            d="M105 635 L500 74 L895 635 Z"
+            fill="url(#rock)"
+            stroke="#58717c"
+            strokeWidth="2.5"
           />
           <path
             d="M500 74 L389 224 L451 196 L482 232 L524 182 L563 219 L608 211 Z"
             fill="url(#snow)"
             opacity=".96"
           />
-          <path d="M55 635 L500 74 L438 635 Z" fill="#aec3c6" opacity=".07" />
-          <path d="M500 74 L955 635 L592 635 Z" fill="#000" opacity=".17" />
+          <path d="M105 635 L500 74 L438 635 Z" fill="#aec3c6" opacity=".07" />
+          <path d="M500 74 L895 635 L592 635 Z" fill="#000" opacity=".17" />
+          <path
+            d="M184 230 Q258 300 334 389"
+            fill="none"
+            stroke="#76909a"
+            strokeOpacity=".22"
+            strokeWidth="2"
+          />
+          <path
+            d="M500 74 Q605 190 686 337"
+            fill="none"
+            stroke="#91a9ad"
+            strokeOpacity=".2"
+            strokeWidth="2"
+          />
+          <path
+            d="M686 337 Q754 242 816 145"
+            fill="none"
+            stroke="#91a9ad"
+            strokeOpacity=".16"
+            strokeWidth="2"
+          />
           <path
             d="M185 635 Q310 560 389 574 T550 548 T815 635"
             fill="none"
@@ -311,11 +427,22 @@ export function InteractiveMountain({
                     #{rank}
                   </text>
                 )}
+                {startup ? (
+                  <rect
+                    x={rank === 1 ? -76 : -Math.max(32, size / 2 + 23)}
+                    y={rank === 1 ? -145 : -size - 28}
+                    width={rank === 1 ? 152 : Math.max(64, size + 46)}
+                    height={(rank === 1 ? 145 : size + 28) + size / 2 + 27}
+                    rx="12"
+                    fill="transparent"
+                    pointerEvents="all"
+                  />
+                ) : null}
               </g>
             );
           })}
           <text x="35" y="628" fill="#6f8992" fontSize="10" letterSpacing="3">
-            BASE CAMP · 0M
+            THREE-PEAK BASE · 0M
           </text>
           <text
             x="500"
@@ -326,7 +453,7 @@ export function InteractiveMountain({
             fontWeight="700"
             letterSpacing="3"
           >
-            THE SUMMIT
+            CROWN SUMMIT
           </text>
         </svg>
         <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-3 py-1.5 text-[10px] uppercase tracking-[.16em] text-muted-foreground backdrop-blur">

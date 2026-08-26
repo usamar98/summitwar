@@ -1,4 +1,5 @@
 import { getSeasonBounds } from "@/lib/format";
+import { MOUNTAIN_CAPACITY } from "@/lib/domain/ranking";
 import type {
   HomeData,
   RankingEvent,
@@ -97,7 +98,7 @@ export const demoStartups: Startup[] = names.map((name, index) => {
     founderHandle: `@demo${index + 1}`,
     category: categories[index % categories.length],
     launchYear: 2024 + (index % 3),
-    currentRank: index < 50 ? index + 1 : null,
+    currentRank: index < MOUNTAIN_CAPACITY ? index + 1 : null,
     seasonSpendCents: spend,
     lifetimeSpendCents: spend + (index % 4) * 2300,
     altitudeMeters: spend,
@@ -201,8 +202,8 @@ export const demoSeason: Season = {
 export const demoHomeData: HomeData = {
   demo: true,
   season: demoSeason,
-  mountain: demoStartups.slice(0, 50),
-  baseCamp: demoStartups.slice(50),
+  mountain: demoStartups.slice(0, MOUNTAIN_CAPACITY),
+  baseCamp: demoStartups.slice(MOUNTAIN_CAPACITY),
   events: demoEvents,
   stats: demoStats,
   testimonials: [],

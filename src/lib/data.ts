@@ -11,6 +11,7 @@ import type {
   SiteStats,
   Startup,
 } from "@/lib/types";
+import { MOUNTAIN_CAPACITY } from "@/lib/domain/ranking";
 
 type DbListing = {
   id: string;
@@ -245,10 +246,10 @@ export const getHomeData = cache(async (): Promise<HomeData> => {
     demo: listingRows.some((row) => row.is_demo),
     season,
     mountain: listings.filter(
-      (item) => item.currentRank && item.currentRank <= 50,
+      (item) => item.currentRank && item.currentRank <= MOUNTAIN_CAPACITY,
     ),
     baseCamp: listings.filter(
-      (item) => !item.currentRank || item.currentRank > 50,
+      (item) => !item.currentRank || item.currentRank > MOUNTAIN_CAPACITY,
     ),
     events,
     stats: toStats(

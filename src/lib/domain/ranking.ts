@@ -4,6 +4,8 @@ export type Rankable = {
   firstReachedAt: string;
 };
 
+export const MOUNTAIN_CAPACITY = 20;
+
 export function altitudeForCents(cents: number) {
   if (!Number.isSafeInteger(cents) || cents < 0)
     throw new Error("Invalid cents");

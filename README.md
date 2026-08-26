@@ -5,7 +5,7 @@ SummitWar is a production-oriented competitive startup discovery application for
 ## What is included
 
 - Next.js 16 App Router, strict TypeScript, React Server Components, Tailwind CSS 4, and owned shadcn/ui source components
-- Original responsive SVG mountain with 50 camps, keyboard/tap detail drawer, premium top-three treatment, summit beam, Realtime rank refresh, and reduced-motion behavior
+- Original responsive three-peak SVG mountain with 20 camps, keyboard/tap detail drawer, premium top-three treatment, summit beam, Realtime rank refresh, and reduced-motion behavior
 - Public mountain, immutable activity feed, Base Camp search/filtering, startup profiles, statistics, rules, Hall of Fame, and seven dynamic 1200×630 share-card variants
 - Passwordless Supabase Auth owner dashboard with profile/logo editing, metrics, rank history, competitors, top-ups, and share assets
 - Allowlisted admin dashboard for moderation, listing edits, payments, idempotent provider replay, webhooks, seasons, testimonials, settings, CSV exports, and audit history
