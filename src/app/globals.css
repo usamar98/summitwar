@@ -117,6 +117,23 @@
     content-visibility: auto;
     contain-intrinsic-size: 1px 500px;
   }
+  .live-proof-slider {
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 4%,
+      black 96%,
+      transparent
+    );
+  }
+  .live-proof-track {
+    animation: live-proof-slide 34s linear infinite;
+  }
+  .live-proof-track:hover,
+  .live-proof-track:focus-within {
+    animation-play-state: paused;
+  }
 }
 
 @keyframes avalanche {
@@ -139,6 +156,12 @@
   }
   50% {
     opacity: 1;
+  }
+}
+
+@keyframes live-proof-slide {
+  to {
+    transform: translateX(-50%);
   }
 }
 

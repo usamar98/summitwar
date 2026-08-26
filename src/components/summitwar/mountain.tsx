@@ -176,8 +176,7 @@ export function InteractiveMountain({
             const startup = startups[index];
             const rank = index + 1;
             const premium = rank <= 3;
-            const size =
-              rank === 1 ? 40 : rank <= 3 ? 31 : rank <= 10 ? 24 : 18;
+            const size = rank === 1 ? 52 : rank <= 3 ? 40 : rank <= 8 ? 34 : 22;
             return (
               <g
                 key={rank}
@@ -236,12 +235,22 @@ export function InteractiveMountain({
                     />
                   </>
                 )}
+                {startup ? (
+                  <circle
+                    r={size / 2 + 8}
+                    fill="none"
+                    stroke={premium ? "#ffd56a" : "#89c8c0"}
+                    strokeWidth="2"
+                    opacity={premium ? 0.48 : 0.28}
+                    className={rank <= 3 ? "camp-pulse" : undefined}
+                  />
+                ) : null}
                 <circle
-                  r={size / 2 + 4}
+                  r={size / 2 + 3}
                   fill={rank === 1 ? "#211b0d" : "#0c1b27"}
                   stroke={premium ? "#ffd56a" : startup ? "#89c8c0" : "#60727b"}
-                  strokeWidth={premium ? 3 : 1.5}
-                  opacity={startup ? 1 : 0.5}
+                  strokeWidth={premium ? 4 : startup ? 2.5 : 1.75}
+                  opacity={startup ? 1 : 0.72}
                 />
                 {startup ? (
                   <>
@@ -271,20 +280,22 @@ export function InteractiveMountain({
                       </>
                     ) : null}
                     <rect
-                      x={-11}
-                      y={size / 2 + 5}
-                      width="22"
-                      height="12"
-                      rx="6"
+                      x={-16}
+                      y={size / 2 + 6}
+                      width="32"
+                      height="17"
+                      rx="8.5"
                       fill={premium ? "#ffd56a" : "#102733"}
+                      stroke={premium ? "#fff0b3" : "#6ab8b0"}
+                      strokeWidth="1"
                     />
                     <text
                       x="0"
-                      y={size / 2 + 14}
+                      y={size / 2 + 18}
                       textAnchor="middle"
                       fill={premium ? "#271c06" : "#dbe8e8"}
-                      fontSize="8"
-                      fontWeight="700"
+                      fontSize="10"
+                      fontWeight="800"
                     >
                       #{rank}
                     </text>
@@ -293,10 +304,11 @@ export function InteractiveMountain({
                   <text
                     textAnchor="middle"
                     dominantBaseline="central"
-                    fill="#8ca0a7"
-                    fontSize="7"
+                    fill="#c7d7db"
+                    fontSize="8"
+                    fontWeight="700"
                   >
-                    {rank}
+                    #{rank}
                   </text>
                 )}
               </g>

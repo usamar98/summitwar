@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Flag, Loader2, ShieldCheck } from "lucide-react";
+import { useId, useState } from "react";
+import { Flag, Loader2, ShieldCheck, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -15,14 +23,17 @@ export function SectorChallengeForm({
   startupId,
   startupName,
   rank,
+  buttonLabel,
 }: {
   startupId: string;
   startupName: string;
   rank: number;
+  buttonLabel?: string;
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fieldId = `sector-${startupId}`;
+  const instanceId = useId().replaceAll(":", "");
+  const fieldId = `sector-${startupId}-${instanceId}`;
 
   async function submit(formData: FormData) {
     setPending(true);
@@ -112,13 +123,55 @@ export function SectorChallengeForm({
         )}
         {pending
           ? "Opening secure checkout…"
-          : `Challenge sector #${rank} with your project`}
+          : (buttonLabel ?? `Challenge sector #${rank} with your project`)}
       </Button>
       <p className="flex items-center justify-center gap-1.5 text-center text-[9px] text-muted-foreground">
         <ShieldCheck className="size-3 text-accent" /> Stripe checkout · exact
         takeover amount calculated live
       </p>
     </form>
+  );
+}
+
+export function KnockDownChallengeDialog({
+  startupId,
+  startupName,
+  rank,
+}: {
+  startupId: string;
+  startupName: string;
+  rank: number;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          size="xs"
+          variant="outline"
+          className="border-accent/25 bg-accent/8 text-accent hover:border-accent/45 hover:bg-accent/15"
+          aria-label={`Knock down ${startupName}`}
+        >
+          <TrendingDown /> Knock Down
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[92vh] overflow-y-auto border-white/10 bg-[#0d0e12] p-5 sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl">
+            Knock down {startupName}
+          </DialogTitle>
+          <DialogDescription className="leading-6">
+            Enter your project details. Stripe calculates the exact verified
+            amount needed to move above rank #{rank}.
+          </DialogDescription>
+        </DialogHeader>
+        <SectorChallengeForm
+          startupId={startupId}
+          startupName={startupName}
+          rank={rank}
+          buttonLabel={`Knock down ${startupName}`}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
 

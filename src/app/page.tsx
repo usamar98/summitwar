@@ -41,7 +41,26 @@ export const metadata: Metadata = createPageMetadata({
 
 export default async function HomePage() {
   const data = await getHomeData();
-  const staleMetadata = [...data.mountain, ...data.baseCamp]
+  const allProjects = [...data.mountain, ...data.baseCamp];
+  const projectById = new Map(
+    allProjects.map((project) => [project.id, project]),
+  );
+  const projectForLatestEvent = (
+    eventTypes: Array<(typeof data.events)[number]["type"]>,
+  ) => {
+    const event = data.events.find(
+      (item) => item.listingId && eventTypes.includes(item.type),
+    );
+    return event?.listingId ? projectById.get(event.listingId) : undefined;
+  };
+  const summitProject = data.mountain[0];
+  const knockDownProject =
+    projectForLatestEvent(["overtaken", "climbed"]) ??
+    [...data.mountain.slice(1, 8)].sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt),
+    )[0];
+  const reclaimProject = projectForLatestEvent(["summit_reclaimed"]);
+  const staleMetadata = allProjects
     .filter(
       (startup) =>
         !startup.logoUrl ||
@@ -109,26 +128,28 @@ export default async function HomePage() {
                 variant="outline"
                 className="h-auto gap-1.5 rounded-full border-primary/30 bg-primary/8 px-3 py-1.5 text-[10px] text-primary"
               >
-                <Crown className="size-3" /> #1 · Capture the Summit
+                <Crown className="size-3" /> Captured the Summit ·{" "}
+                {summitProject?.name ?? "Summit open"}
               </Badge>
               <Badge
                 variant="outline"
                 className="h-auto gap-1.5 rounded-full border-white/12 bg-white/[.035] px-3 py-1.5 text-[10px] text-muted-foreground"
               >
-                <TrendingDown className="size-3" /> #2–9 · Knocked down
+                <TrendingDown className="size-3" /> Knocked Down ·{" "}
+                {knockDownProject?.name ?? "Awaiting challenger"}
               </Badge>
               <Badge
                 variant="outline"
                 className="h-auto gap-1.5 rounded-full border-accent/30 bg-accent/8 px-3 py-1.5 text-[10px] text-accent"
               >
-                <RotateCcw className="size-3" /> Previous winner · Reclaim the
-                Summit
+                <RotateCcw className="size-3" /> Reclaimed the Summit ·{" "}
+                {reclaimProject?.name ?? "Awaiting return"}
               </Badge>
             </div>
           </div>
           <div className="grid items-start gap-4 xl:grid-cols-[236px_minmax(0,1fr)_340px]">
             <div className="order-3 xl:order-1">
-              <MountainClimbers startups={data.mountain.slice(8)} />
+              <MountainClimbers startups={data.mountain.slice(0, 8)} />
             </div>
             <div className="order-1 min-w-0 xl:order-2">
               <InteractiveMountain initialStartups={data.mountain} />
@@ -146,6 +167,7 @@ export default async function HomePage() {
         </div>
       </section>
       <div className="mx-auto max-w-[1440px] space-y-24 px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+        <BaseCamp startups={allProjects} events={data.events} />
         <section className="grid gap-6 lg:grid-cols-[1fr_.78fr]">
           <ActivityFeed events={data.events} limit={7} />
           <Card className="overflow-hidden bg-gradient-to-br from-card to-accent/5">
@@ -303,7 +325,6 @@ export default async function HomePage() {
             .
           </p>
         </section>
-        <BaseCamp startups={data.baseCamp} />
       </div>
     </>
   );

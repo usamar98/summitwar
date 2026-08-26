@@ -6,9 +6,13 @@ import {
   RotateCcw,
   TrendingDown,
 } from "lucide-react";
-import { SectorChallengeForm } from "@/components/summitwar/sector-challenge-form";
+import {
+  KnockDownChallengeDialog,
+  SectorChallengeForm,
+} from "@/components/summitwar/sector-challenge-form";
 import { StartupMark } from "@/components/summitwar/startup-mark";
 import { Badge } from "@/components/ui/badge";
+import { formatMoney } from "@/lib/format";
 import type { Startup } from "@/lib/types";
 
 function statusForProject(startup: Startup, rank: number) {
@@ -33,13 +37,7 @@ function statusForProject(startup: Startup, rank: number) {
   };
 }
 
-function ProjectSectorCard({
-  startup,
-  latest,
-}: {
-  startup: Startup;
-  latest: boolean;
-}) {
+function ProjectSectorCard({ startup }: { startup: Startup }) {
   const rank = startup.currentRank ?? 1;
   const status = statusForProject(startup, rank);
   const StatusIcon = status.icon;
@@ -71,14 +69,12 @@ function ProjectSectorCard({
         >
           Summit sector {rankLabel}
         </div>
-        <span
-          aria-hidden="true"
-          className={`size-4 rounded-[5px] border shadow-[inset_0_0_0_1px_rgba(255,255,255,.18)] ${
-            rank === 1
-              ? "border-primary/80 bg-primary"
-              : "border-accent/70 bg-accent"
-          }`}
-        />
+        <Badge
+          variant="outline"
+          className="border-primary/30 bg-primary/10 font-mono text-[10px] text-primary"
+        >
+          {formatMoney(startup.seasonSpendCents)} hold
+        </Badge>
       </div>
       <h3 className="relative mt-2 truncate text-xl font-semibold tracking-tight">
         {startup.name}
@@ -126,18 +122,12 @@ function ProjectSectorCard({
         <Badge variant="outline" className={status.className}>
           <StatusIcon className="size-3" /> {status.label}
         </Badge>
-        {latest ? (
-          <span className="text-[9px] font-medium uppercase tracking-[.12em] text-accent">
-            Latest submitted project
-          </span>
-        ) : (
-          <time
-            dateTime={startup.createdAt}
-            className="text-[9px] text-muted-foreground"
-          >
-            Submitted {submitted}
-          </time>
-        )}
+        <time
+          dateTime={startup.createdAt}
+          className="text-[9px] text-muted-foreground"
+        >
+          Submitted {submitted}
+        </time>
       </div>
       <SectorChallengeForm
         startupId={startup.id}
@@ -149,34 +139,23 @@ function ProjectSectorCard({
 }
 
 export function SummitLeaders({ startups }: { startups: Startup[] }) {
-  const latestProject = startups.reduce<Startup | null>(
-    (latest, startup) =>
-      !latest || startup.createdAt > latest.createdAt ? startup : latest,
-    null,
-  );
+  const strongest = [...startups].sort(
+    (a, b) =>
+      b.seasonSpendCents - a.seasonSpendCents ||
+      a.firstReachedAt.localeCompare(b.firstReachedAt),
+  )[0];
   return (
-    <aside aria-label="Top eight projects" className="min-w-0">
-      <div className="mb-3 flex items-end justify-between px-1.5">
+    <aside aria-label="Strongest project" className="min-w-0">
+      <div className="mb-3 px-1.5">
         <div>
           <div className="text-[10px] font-medium uppercase tracking-[.18em] text-primary">
-            Project strongholds
+            Strongest by verified hold
           </div>
-          <h2 className="mt-1 text-base font-semibold">Ranks 1–8</h2>
+          <h2 className="mt-1 text-base font-semibold">Summit holder</h2>
         </div>
-        <span className="font-mono text-[10px] text-muted-foreground">
-          01—08
-        </span>
       </div>
-      {startups.length ? (
-        <div className="grid gap-3 xl:max-h-[820px] xl:overflow-y-auto xl:pr-1.5">
-          {startups.map((startup) => (
-            <ProjectSectorCard
-              key={startup.id}
-              startup={startup}
-              latest={startup.id === latestProject?.id}
-            />
-          ))}
-        </div>
+      {strongest ? (
+        <ProjectSectorCard startup={strongest} />
       ) : (
         <div className="rounded-xl border border-dashed border-primary/25 bg-primary/5 p-4 text-xs leading-5 text-muted-foreground">
           No project holds a top-eight sector yet.
@@ -187,50 +166,62 @@ export function SummitLeaders({ startups }: { startups: Startup[] }) {
 }
 
 export function MountainClimbers({ startups }: { startups: Startup[] }) {
+  const recent = [...startups].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
   return (
     <aside
-      aria-label="Projects ranked nine through fifty"
+      aria-label="Most recent top projects"
       className="rounded-2xl border border-white/8 bg-card/45 p-3 backdrop-blur xl:h-[660px]"
     >
-      <div className="mb-3 flex items-end justify-between px-1">
+      <div className="mb-3 px-1">
         <div>
           <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[.18em] text-accent">
             <MountainSnow className="size-3" /> On the ascent
           </div>
-          <h2 className="mt-1 text-base font-semibold">Ranks 9–50</h2>
+          <h2 className="mt-1 text-base font-semibold">Recent top projects</h2>
         </div>
-        <span className="font-mono text-[10px] text-muted-foreground">
-          09—50
-        </span>
       </div>
-      {startups.length ? (
+      {recent.length ? (
         <div className="grid max-h-[574px] gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-1">
-          {startups.map((startup, index) => {
-            const rank = startup.currentRank ?? index + 9;
+          {recent.map((startup, index) => {
+            const rank = startup.currentRank ?? index + 1;
             return (
-              <Link
+              <article
                 key={startup.id}
-                href={`/startup/${startup.slug}`}
-                className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2 py-2 transition-colors hover:border-white/8 hover:bg-white/[.045]"
+                className="group grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2.5 gap-y-2 rounded-lg border border-transparent px-2 py-2 transition-colors hover:border-white/8 hover:bg-white/[.045]"
               >
                 <span className="w-6 shrink-0 text-right font-mono text-[10px] text-muted-foreground">
-                  {rank}
+                  #{rank}
                 </span>
                 <StartupMark
                   name={startup.name}
                   logoUrl={startup.logoUrl}
                   className="size-7 rounded-md"
                 />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[11px] font-medium">
-                    {startup.name}
-                  </div>
+                <div className="min-w-0">
+                  <Link
+                    href={`/startup/${startup.slug}`}
+                    className="flex min-w-0 items-center gap-1 text-[11px] font-medium hover:text-accent"
+                  >
+                    <span className="truncate">{startup.name}</span>
+                    <ArrowUpRight className="size-3 shrink-0 text-muted-foreground" />
+                  </Link>
                   <div className="truncate text-[9px] text-muted-foreground/75">
                     {startup.tagline}
                   </div>
                 </div>
-                <ArrowUpRight className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-              </Link>
+                <div className="col-start-2 col-end-4 flex items-center justify-between gap-2">
+                  <span className="font-mono text-[10px] text-primary">
+                    {formatMoney(startup.seasonSpendCents)} hold
+                  </span>
+                  <KnockDownChallengeDialog
+                    startupId={startup.id}
+                    startupName={startup.name}
+                    rank={rank}
+                  />
+                </div>
+              </article>
             );
           })}
         </div>
