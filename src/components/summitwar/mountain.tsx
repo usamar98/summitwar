@@ -327,13 +327,6 @@ export function InteractiveMountain({
                       strokeWidth="2"
                       opacity=".5"
                     />
-                    <circle
-                      cy="-48"
-                      r="68"
-                      fill="#ffd56a"
-                      opacity=".09"
-                      className="camp-pulse"
-                    />
                   </>
                 ) : (
                   <>
@@ -358,7 +351,9 @@ export function InteractiveMountain({
                     stroke={premium ? "#ffd56a" : "#89c8c0"}
                     strokeWidth="2"
                     opacity={premium ? 0.48 : 0.28}
-                    className={rank <= 3 ? "camp-pulse" : undefined}
+                    className={
+                      rank === 2 || rank === 3 ? "camp-pulse" : undefined
+                    }
                   />
                 ) : null}
                 <circle

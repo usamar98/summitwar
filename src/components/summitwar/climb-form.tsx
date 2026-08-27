@@ -16,7 +16,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { formatMoney } from "@/lib/format";
 
 type CheckoutResponse = {
@@ -94,6 +93,11 @@ export function NewListingForm({
     setPending(true);
     setError(null);
     try {
+      const submittedHandle = String(formData.get("founderHandle") ?? "");
+      const description =
+        tagline.trim().length >= 20
+          ? tagline.trim()
+          : `${projectName.trim()} is competing on SummitWar.`;
       await beginCheckout({
         email: formData.get("email"),
         amountDollars: formData.get("amount"),
@@ -101,11 +105,11 @@ export function NewListingForm({
         listing: {
           name: formData.get("name"),
           tagline: formData.get("tagline"),
-          description: formData.get("description"),
+          description,
           website: formData.get("website"),
-          founderName: formData.get("founderName"),
-          founderHandle: formData.get("founderHandle"),
-          category: formData.get("category"),
+          founderName: submittedHandle || `${projectName.trim()} team`,
+          founderHandle: submittedHandle,
+          category: "Project",
           launchYear: formData.get("launchYear"),
         },
       });
@@ -157,17 +161,7 @@ export function NewListingForm({
               value={website}
               onChange={(event) => setWebsite(event.target.value)}
             />
-            <Field
-              label="Founder name"
-              name="founderName"
-              placeholder="Ada Founder"
-            />
             <Field label="X handle" name="founderHandle" placeholder="@ada" />
-            <Field
-              label="Category"
-              name="category"
-              placeholder="Developer tools"
-            />
             <Field
               label="Launch year"
               name="launchYear"
@@ -227,18 +221,6 @@ export function NewListingForm({
               ) : null}
             </div>
           ) : null}
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              required
-              minLength={20}
-              maxLength={5000}
-              rows={compact ? 3 : 5}
-              placeholder="What are you building, for whom, and why does it matter?"
-            />
-          </div>
           <div className={`grid gap-4 ${compact ? "" : "sm:grid-cols-2"}`}>
             <Field
               label="Checkout email"

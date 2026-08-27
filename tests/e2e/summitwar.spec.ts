@@ -55,6 +55,9 @@ test("renders the live homepage without browser errors", async ({ page }) => {
     "transform",
     "translate(500 126)",
   );
+  await expect(
+    page.getByRole("button", { name: /^Rank 1,/ }).locator(".camp-pulse"),
+  ).toHaveCount(0);
   await expect(page.getByRole("button", { name: /^Rank 2,/ })).toHaveAttribute(
     "transform",
     "translate(816 190)",
@@ -190,23 +193,19 @@ test("creates a listing through the development payment adapter", async ({
     });
   });
   await page.goto("/start");
+  await expect(page.getByLabel("Founder name")).toHaveCount(0);
+  await expect(page.getByLabel("Category")).toHaveCount(0);
+  await expect(page.getByLabel("Description")).toHaveCount(0);
   await page.getByLabel("Project name").fill("E2E Peak");
   await page.getByLabel("Project link").fill("https://e2e.example.com");
   await expect(page.getByText("Project detected")).toBeVisible();
   await expect(page.getByLabel("Project heading fallback")).toHaveValue(
     "Project heading detected from the submitted link.",
   );
-  await page.getByLabel("Founder name").fill("Test Founder");
   await page.getByLabel("X handle").fill("@e2epeak");
-  await page.getByLabel("Category").fill("Testing");
   await page
     .getByLabel("Project heading fallback")
     .fill("A startup built by Playwright.");
-  await page
-    .getByLabel("Description")
-    .fill(
-      "This is a long enough description for the end to end listing validation flow.",
-    );
   await page.getByLabel("Checkout email").fill("founder@example.com");
   await page.getByRole("button", { name: /Continue to Stripe/ }).click();
   await expect(page).toHaveURL(/checkout\/success/);
